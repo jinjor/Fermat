@@ -1,0 +1,10 @@
+/data
+/node_modules
+
+/bin
+/sandbox
+/lib
+/.settings
+.cache
+.classpath
+.project

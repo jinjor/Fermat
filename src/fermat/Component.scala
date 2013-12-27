@@ -1,0 +1,31 @@
+package fermat
+
+import scala.xml.Elem
+import scala.xml.Node
+
+case class Require(node: Node)
+case class Template(node: Node)
+case class Script(node: Option[Node])
+
+object Component {
+  def apply(node: Node): Component = {
+    val requires = (node \ "require").map(xml => Require(xml))
+    val template = (node \ "template")(0)
+    val script = (node \ "script").headOption
+    Component(node, requires, Template(template), Script(script))
+  }
+}
+case class Component(node: Node, requires:Seq[Require], template: Template, script: Script)
+
+
+
+
+
+
+
+
+
+
+
+
+
