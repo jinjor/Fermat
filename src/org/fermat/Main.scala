@@ -1,4 +1,4 @@
-package fermat
+package org.fermat
 import scala.xml.XML
 
 object Main {

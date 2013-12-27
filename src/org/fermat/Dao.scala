@@ -1,4 +1,4 @@
-package fermat
+package org.fermat
 
 import org.apache.commons.io.FileUtils
 import java.io.File

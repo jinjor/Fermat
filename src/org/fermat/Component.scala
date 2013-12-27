@@ -1,4 +1,4 @@
-package fermat
+package org.fermat
 
 import scala.xml.Elem
 import scala.xml.Node
