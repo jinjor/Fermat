@@ -16,9 +16,7 @@ object Component {
     val script = (node \ "script").headOption
     Component(node, requires, Template(template), Script(script))
   }
-  case class Event(private val attribute: MetaData, name: String) {
-	 def methodName: String = (attribute.value).toString
-  }
+  
   
 }
 case class Component(node: Node, requires:Seq[Require], template: Template, script: Script)
