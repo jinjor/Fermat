@@ -10,12 +10,9 @@ object Main {
   def exec(root: String, top: String) {
     val component1Xml = Dao.loadXml(root + "/" + top);
     val component1 = Web.Html(Component(component1Xml))
-
+    		
     Dao.write(Web.all(component1))
-    
   }
-  
-  
 }
 
 
