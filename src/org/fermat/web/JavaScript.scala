@@ -25,7 +25,7 @@ object JavaScript {
 
     val events = Event.eventsOf(html.node)
     events.foldLeft(s2) { (memo, event) =>
-      s"${memo}.on('${event.name}', this.${event.methodName})"
+      s"${memo}.on('${event.name}', ${event.methodName})"
     }
   }
   def expression(html: HtmlComponent): String = {
@@ -35,18 +35,20 @@ object JavaScript {
     val div = HtmlNode(<div/>, htmlComponent.template.children)
     val s = expression(div)
     val events = allEvents(htmlComponent.template)
+    /*
     val eventFunctions = events.map { e =>
       s"""${e.methodName}: function(){
       alert("${e.methodName}")
     }"""
     }.mkString(",")
-
+*/
+    val eventFunctions = htmlComponent.script
     s"""
 	Backbone.View.extend({
 	  initialize: function(){
+        ${eventFunctions}
 	    this.$$el = $$($s);
-	  },
-	  ${eventFunctions}
+	  }
 	})"""
   }
   def clazzDef(htmlComponent: HtmlComponent): String = {
