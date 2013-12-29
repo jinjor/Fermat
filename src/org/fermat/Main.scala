@@ -7,16 +7,22 @@ import org.fermat.util.Dao
 object Main {
   def main(args: Array[String]) = {
 
-    exec("sandbox", "text.xml")
+    exec("sandbox", "component1.xml")
   }
   
   def exec(root: String, top: String) {
-    val path = root + "/" + top
     
-    val component1 = Component(path) match {
-      case Right(component) => Dao.write(Web.all(component))
+    val fullPathOf = (s: String) => root + "/" + s
+    val fullPathOfTop = fullPathOf(top)
+    
+    Component(fullPathOfTop) match {
+      case Right(topComponent) => {
+        val deps = Dependency.getAllComponent(topComponent, fullPathOf)
+	    Dao.write(Web.all(deps))
+      }
       case Left(ex) => ex.cause.printStackTrace()
     }
+    
     
   }
 }

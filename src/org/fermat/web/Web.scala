@@ -9,12 +9,13 @@ import org.fermat.Dependency
 
 object Web {
 
-  def all(top: Component): Output = {
-    val deps = Dependency.getAllComponent(top).map(Html.apply)
-    val htmlComponent = deps.last
+  def all(deps: List[Component]): Output = {
+    val htmlDeps = deps.map(Html.apply)
+    val htmlComponent = htmlDeps.last
 
     val script = JavaScript.expression(htmlComponent)
-    val classDefs = deps.map { component =>
+    val classDefs = htmlDeps.map { component =>
+      //println(component.className)
       JavaScript.clazzDef(component)
     }
 

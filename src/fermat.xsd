@@ -10,8 +10,12 @@
 	<xsd:element name="component">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="require" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-				<xsd:element name="arg" maxOccurs="unbounded">
+				<xsd:element name="require" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="src" type="nestring" use="required" />
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="arg" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
 						<xsd:attribute name="name" type="nestring" use="required" />
 					</xsd:complexType>

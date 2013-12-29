@@ -28,5 +28,5 @@ case class HtmlNode(node: Node, children: Seq[HtmlNode]) extends Html {
   }
 }
 case class HtmlComponent(component: Component, template: HtmlNode, script: String) extends Html {
-  lazy val className = component.node.label.capitalize
+  lazy val className = component.node.attribute("name").get.toString.capitalize
 }
