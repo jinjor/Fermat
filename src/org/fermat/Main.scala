@@ -6,7 +6,7 @@ import org.fermat.web.Html
 object Main {
   def main(args: Array[String]) = {
 
-    exec("sandbox", "component2.xml")
+    exec("sandbox", "component1.xml")
   }
   
   def exec(root: String, top: String) {
