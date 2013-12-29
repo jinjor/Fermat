@@ -6,14 +6,17 @@ import org.fermat.web.Html
 object Main {
   def main(args: Array[String]) = {
 
-    exec("sandbox", "component1.frm")
+    exec("sandbox", "component2.xml")
   }
   
   def exec(root: String, top: String) {
-    val component1Xml = Dao.loadXml(root + "/" + top);
-    val component1 = Component(component1Xml)
-    		
-    Dao.write(Web.all(component1))
+    val path = root + "/" + top
+    
+    val component1 = Component(path) match {
+      case Right(component) => Dao.write(Web.all(component))
+      case Left(ex) => ex.cause.printStackTrace()
+    }
+    
   }
 }
 

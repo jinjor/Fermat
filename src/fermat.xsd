@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:simpleType name="nestring">
+		<xsd:restriction base="xsd:string">
+			<xsd:maxLength value="50" />
+			<xsd:minLength value="1" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="component">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="require" type="xsd:string" maxOccurs="unbounded" />
+				<xsd:element name="template" />
+				<xsd:element name="script" type="xsd:string" />
+			</xsd:sequence>
+			<xsd:attribute name="name" type="nestring" use="required" />
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>
