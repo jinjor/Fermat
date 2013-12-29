@@ -4,15 +4,17 @@ import scala.xml.Node
 import org.fermat.Component
 import org.fermat.Event
 import org.fermat.util.Output
-import org.fermat.Tsort.{ Node => TNode }
+import org.fermat.Dependency
+
 
 object Web {
 
   def all(top: Component): Output = {
-    val htmlComponent = Html(top)
+    val deps = Dependency.getAllComponent(top).map(Html.apply)
+    val htmlComponent = deps.last
 
     val script = JavaScript.expression(htmlComponent)
-    val classDefs = deps(htmlComponent).map { component =>
+    val classDefs = deps.map { component =>
       JavaScript.clazzDef(component)
     }
 
@@ -38,29 +40,5 @@ object Web {
   	});
   </script>"""
 
-  def deps(top: HtmlComponent): Seq[HtmlComponent] = {
-    val getComponent: String => Component = (src: String) => {
-      Component(src).right.get
-    }
-	val tNodeList = makeNodesForTsort(top.component, Map(), getComponent, Nil)
-    List(top)
-  }
-
-  def makeNodesForTsort(top: Component, cache: Map[String, Component], getComponent: String => Component,
-      tNodeList: List[TNode[Component]]): (Map[String, Component], List[TNode[Component]]) = {
-    val (newCache, reqComponents) = top.requires.foldLeft((cache, List[Component]())) {
-      case ((memo, list), req) =>
-        val src = req.node.attribute("src").toString
-        val component = memo.get(src) match {
-          case Some(component) => component
-          case None => getComponent(src)
-        }
-        (memo + (src -> component), component :: list)
-    }
-    val init = (newCache, TNode(top, reqComponents) :: tNodeList)
-    reqComponents.foldLeft(init){ case((cache, list), reqComponent) =>
-      makeNodesForTsort(reqComponent, cache, getComponent, list)
-    }
-  }
 
 }

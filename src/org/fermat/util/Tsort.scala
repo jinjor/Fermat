@@ -1,6 +1,4 @@
-package org.fermat
-
-import scala.annotation.tailrec
+package org.fermat.util
 
 object Tsort {
   case class NodeNotFound[A](parent: A) extends Exception
