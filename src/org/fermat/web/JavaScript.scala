@@ -3,6 +3,15 @@ package org.fermat.web
 import org.fermat.Event
 
 object JavaScript {
+  
+  sealed abstract class InnerData
+  case class InnerElements(children:Seq[ElementProf]) extends InnerData
+  case class InnerStaticText(text: String) extends InnerData
+  case class InnerDynamicText(modelName: String) extends InnerData
+  
+  case class ElementProf(elementVarName:String, elementExpression:String,
+      innerData: InnerData, events: Iterable[Event])
+  
 
   lazy val preLoadTagsAsString: String = {
     """<script src="../lib/jquery-2.0.3.min.js"></script>
@@ -16,6 +25,28 @@ object JavaScript {
       case html: HtmlComponent => expression(html)
     }
   }
+  var id = 0
+  def crateNewVarName(): String = {
+    id = id + 1
+    "var" + id;
+  }
+  
+  def elementProf(html: HtmlNode): Option[ElementProf] = {
+    val s = html.toHtmlString
+    if (s.isEmpty){
+      return None
+    }
+    val elementExpression = s"""$$('$s')"""
+    val innerData: InnerData =
+      if (html.children.isEmpty) InnerStaticText(html.node.text)//TODO
+      else InnerElements(html.children.flatMap { child =>
+	      JavaScript.elementProf(child)
+	    })
+    val events = Event.eventsOf(html.node)
+    val elementVarName = crateNewVarName()
+    Some(ElementProf(elementVarName, elementExpression, innerData, events))
+  }
+  
   def expression(html: HtmlNode): String = {
     val s = html.toHtmlString
     val s2 = if (s.isEmpty) "" else s"""$$('$s')""" + (html.children.map { child =>
@@ -28,13 +59,36 @@ object JavaScript {
       s"${memo}.on('${event.name}', ${event.methodName})"
     }
   }
+  
   def expression(html: HtmlComponent): String = {
     s"$$(new ${html.className}().$$el)" //TODO args
   }
+  def elementDeclarations(ep: ElementProf): List[String] = {
+    s"""var ${ep.elementVarName} = ${ep.elementExpression};""" :: (ep.innerData match {
+      case InnerElements(children) =>
+        children.toList.flatMap(elementDeclarations)
+      case _ => Nil
+    })
+  }
+  
+  def renderScripts(ep: ElementProf): Seq[String] = {
+    (ep.innerData match {
+      case InnerDynamicText(model) =>
+        List(s"${ep.elementVarName}.text(${model})")
+      case InnerElements(children) =>
+        children.flatMap(renderScripts)
+      case _ => Nil
+    })
+  }
+  
   def clazz(htmlComponent: HtmlComponent): String = {
     val div = HtmlNode(<div/>, htmlComponent.template.children)
-    val s = expression(div)
-    val events = allEvents(htmlComponent.template)
+    val prof = elementProf(div).get
+    val expr = expression(div)
+    val elementDeclaration = elementDeclarations(prof).mkString("\n")
+    val renderScriptStr = renderScripts(prof).mkString("\n")
+    
+    //val events = allEvents(htmlComponent.template)
     /*
     val eventFunctions = events.map { e =>
       s"""${e.methodName}: function(){
@@ -42,18 +96,26 @@ object JavaScript {
     }"""
     }.mkString(",")
 */
-    val eventFunctions = htmlComponent.script
+    val userScript = htmlComponent.script
     s"""
 	Backbone.View.extend({
 	  initialize: function(){
-        ${eventFunctions}
-	    this.$$el = $$($s);
+    	var scope = {};
+        ${userScript}
+    
+    	${elementDeclaration}
+    	this.$$el.html($$($expr));
+    	var render = function(){
+    		${renderScriptStr}
+    	};
+	    this.render();
 	  }
 	})"""
   }
   def clazzDef(htmlComponent: HtmlComponent): String = {
     s"var ${htmlComponent.className} = ${clazz(htmlComponent)};"
   }
+  /*
   def allEvents(htmlNodes: Seq[HtmlNode]): Seq[Event] = {
     htmlNodes.flatMap(allEvents)
   }
@@ -62,5 +124,7 @@ object JavaScript {
       event <- (Event.eventsOf(html.node) ++ allEvents(html.children)).seq
     } yield event
   }
+  * 
+  */
 
 }
