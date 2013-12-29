@@ -2,6 +2,7 @@ package org.fermat
 import scala.xml.XML
 import org.fermat.web.Web
 import org.fermat.web.Html
+import org.fermat.util.Dao
 
 object Main {
   def main(args: Array[String]) = {
@@ -19,11 +20,3 @@ object Main {
     
   }
 }
-
-
-
-
-
-
-
-

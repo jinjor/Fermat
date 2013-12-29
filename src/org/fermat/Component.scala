@@ -4,19 +4,23 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.Schema
 import javax.xml.validation.SchemaFactory
 import javax.xml.validation.{ Validator => JValidator }
-
 import scala.xml.Elem
 import scala.xml.Node
 import scala.xml.Attribute
 import scala.xml.MetaData
+import org.fermat.util.Dao
 
 object Component {
 
-  case class FermatValidationError(cause: Exception)
+  abstract sealed class FermatException {
+    def cause: Exception
+  }
+  case class FermatValidationException(cause: Exception) extends FermatException
+  case class FermatFileNotFoundException(cause: Exception) extends FermatException
 
   private val XSD_PATH = "src/fermat.xsd"
 
-  def apply(path: String): Either[FermatValidationError, Component] = {
+  def apply(path: String): Either[FermatException, Component] = {
     val node = Dao.loadXml(path)
     Component.validate(XSD_PATH, path) match {
       case Right(_) => {
@@ -25,7 +29,7 @@ object Component {
         val script = (node \ "script").headOption
         Right(Component(node, requires, Template(template), Script(script)))
       }
-      case Left(ex) => Left(FermatValidationError(ex))
+      case Left(ex) => Left(FermatValidationException(ex))
     }
   }
 
