@@ -16,7 +16,8 @@ object JavaScript {
   lazy val preLoadTagsAsString: String = {
     """<script src="../lib/jquery-2.0.3.min.js"></script>
     	<script src="../lib/underscore-min.js"></script>
-    	<script src="../lib/backbone-min.js"></script>"""
+    	<script src="../lib/backbone-min.js"></script>
+	  <script src="../lib/Bacon.min.js"></script>"""
   }
 /*
   def expression(prof: ElementProf): String = {
@@ -39,8 +40,12 @@ object JavaScript {
     }
     val elementExpression = s"""$$('$s')"""
     val innerData: InnerData =
-      if (html.children.isEmpty) InnerStaticText(html.node.text)//TODO
-      else InnerElements(html.children.flatMap { child =>
+      if (html.children.isEmpty) {
+        html.node.attribute("data") match {
+          case Some(attr) => InnerDynamicText(attr.toString)
+          case None => InnerStaticText(html.node.text)//TODO 
+        }
+      }else InnerElements(html.children.flatMap { child =>
 	      JavaScript.elementProf(child)
 	    })
     val events = Event.eventsOf(html.node)
@@ -58,7 +63,10 @@ object JavaScript {
     })
     val events = prof.events
     events.foldLeft(s2) { (memo, event) =>
-      s"${memo}.on('${event.name}', ${event.methodName})"
+      s"""${memo}.on('${event.name}', function(){
+     ${event.methodName}();
+     render();
+    })"""
     }
   }
   
@@ -75,8 +83,8 @@ object JavaScript {
   
   def renderScripts(ep: ElementProf): Seq[String] = {
     (ep.innerData match {
-      case InnerDynamicText(model) =>
-        List(s"${ep.elementVarName}.text(${model})")
+      case InnerDynamicText(modelVarName) =>
+        List(s"${ep.elementVarName}.text(scope.${modelVarName})")
       case InnerElements(children) =>
         children.flatMap(renderScripts)
       case _ => Nil
