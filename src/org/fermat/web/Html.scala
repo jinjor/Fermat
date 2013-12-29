@@ -22,8 +22,8 @@ case class HtmlNode(node: Node, children: Seq[HtmlNode]) extends Html {
   def toHtmlString: String = {
     if (node.isAtom) node.text.trim else {
       //val attributes = node.attributes
-      //s"<${node.label}></${node.label}>"
-      node.toString
+      s"<${node.label}>${node.text.trim}</${node.label}>"//TODO
+      //node.toString
     }
   }
 }

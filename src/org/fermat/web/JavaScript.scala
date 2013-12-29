@@ -18,13 +18,14 @@ object JavaScript {
     	<script src="../lib/underscore-min.js"></script>
     	<script src="../lib/backbone-min.js"></script>"""
   }
-
-  def expression(html: Html): String = {
+/*
+  def expression(prof: ElementProf): String = {
     html match {
       case html: HtmlNode => expression(html)
       case html: HtmlComponent => expression(html)
     }
   }
+  */
   var id = 0
   def crateNewVarName(): String = {
     id = id + 1
@@ -47,24 +48,25 @@ object JavaScript {
     Some(ElementProf(elementVarName, elementExpression, innerData, events))
   }
   
-  def expression(html: HtmlNode): String = {
-    val s = html.toHtmlString
-    val s2 = if (s.isEmpty) "" else s"""$$('$s')""" + (html.children.map { child =>
-      val s = JavaScript.expression(child)
-      if (s.isEmpty) "" else s"""\n.append($s)"""
-    }).mkString
-
-    val events = Event.eventsOf(html.node)
+  def expression(prof: ElementProf): String = {
+    val s2 = s"""$$(${prof.elementVarName})""" + (prof.innerData match {
+      case InnerElements(children) => (children.map { child =>
+	      val s = JavaScript.expression(child)
+	      if (s.isEmpty) "" else s"""\n.append($s)"""
+	    }).mkString
+      case _ => ""
+    })
+    val events = prof.events
     events.foldLeft(s2) { (memo, event) =>
       s"${memo}.on('${event.name}', ${event.methodName})"
     }
   }
   
   def expression(html: HtmlComponent): String = {
-    s"$$(new ${html.className}().$$el)" //TODO args
+    s"new ${html.className}().$$el" //TODO args
   }
-  def elementDeclarations(ep: ElementProf): List[String] = {
-    s"""var ${ep.elementVarName} = ${ep.elementExpression};""" :: (ep.innerData match {
+  def elementDeclarations(prof: ElementProf): List[String] = {
+    s"""var ${prof.elementVarName} = ${prof.elementExpression};""" :: (prof.innerData match {
       case InnerElements(children) =>
         children.toList.flatMap(elementDeclarations)
       case _ => Nil
@@ -84,7 +86,7 @@ object JavaScript {
   def clazz(htmlComponent: HtmlComponent): String = {
     val div = HtmlNode(<div/>, htmlComponent.template.children)
     val prof = elementProf(div).get
-    val expr = expression(div)
+    val expr = expression(prof)
     val elementDeclaration = elementDeclarations(prof).mkString("\n")
     val renderScriptStr = renderScripts(prof).mkString("\n")
     
@@ -108,7 +110,7 @@ object JavaScript {
     	var render = function(){
     		${renderScriptStr}
     	};
-	    this.render();
+	    render();
 	  }
 	})"""
   }
