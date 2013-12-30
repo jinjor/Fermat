@@ -8,6 +8,7 @@ object JavaScript {
   case class InnerElements(children: Seq[ElementProf]) extends InnerData
   case class InnerStaticText(text: String) extends InnerData
   case class InnerDynamicText(modelName: String) extends InnerData
+  case class InnerInputText(modelName: String) extends InnerData
   case object InnerDataCapsuled extends InnerData
 
   abstract class ElementProf {
@@ -24,18 +25,16 @@ object JavaScript {
     	<script src="../lib/backbone-min.js"></script>
 	  <script src="../lib/Bacon.min.js"></script>"""
   }
-  /*
-  def expression(prof: ElementProf): String = {
-    html match {
-      case html: HtmlNode => expression(html)
-      case html: HtmlComponent => expression(html)
-    }
-  }
-  */
+
   var id = 0
   def crateNewVarName(): String = {
     id = id + 1
     "var" + id;
+  }
+
+  def kindOfInput(html: HtmlNode): Boolean = {
+    (html.node.label == "input" && html.node.attribute("type").get.toString.trim == "text") ||
+      (html.node.label == "textarea")
   }
 
   def elementProf(html: Html): Option[ElementProf] = html match {
@@ -48,7 +47,11 @@ object JavaScript {
         val innerData: InnerData =
           if (html.children.isEmpty) {
             html.node.attribute("data") match {
-              case Some(attr) => InnerDynamicText(attr.toString)
+              case Some(attr) => if (kindOfInput(html)) {
+                InnerInputText(attr.toString)
+              } else {
+                InnerDynamicText(attr.toString)
+              }
               case None => InnerStaticText(html.node.text) //TODO 
             }
           } else InnerElements(html.children.flatMap { child =>
@@ -137,6 +140,8 @@ object JavaScript {
       case prof: GeneralProf => (prof.innerData match {
         case InnerDynamicText(modelVarName) =>
           List(s"${prof.elementVarName}.text(scope.${modelVarName})")
+        case InnerInputText(modelVarName) =>
+          List(s"""!${prof.elementVarName}.is(":focus") && ${prof.elementVarName}.val(scope.${modelVarName})""")
         case InnerElements(children) =>
           children.flatMap(renderScripts)
         case _ => Nil
@@ -151,15 +156,6 @@ object JavaScript {
     val expr = expression(prof)
     val elementDeclaration = elementDeclarations(prof).mkString("\n")
     val renderScriptStr = renderScripts(prof).mkString("\n")
-
-    //val events = allEvents(htmlComponent.template)
-    /*
-    val eventFunctions = events.map { e =>
-      s"""${e.methodName}: function(){
-      alert("${e.methodName}")
-    }"""
-    }.mkString(",")
-*/
     val userScript = htmlComponent.script
     s"""
 	Backbone.View.extend(_.extend({
@@ -178,16 +174,5 @@ object JavaScript {
   def clazzDef(htmlComponent: HtmlComponent): String = {
     s"var ${Html.classNameOf(htmlComponent.component)} = ${clazz(htmlComponent)};"
   }
-  /*
-  def allEvents(htmlNodes: Seq[HtmlNode]): Seq[Event] = {
-    htmlNodes.flatMap(allEvents)
-  }
-  def allEvents(html: HtmlNode): Iterable[Event] = {
-    for {
-      event <- (Event.eventsOf(html.node) ++ allEvents(html.children)).seq
-    } yield event
-  }
-  * 
-  */
 
 }
