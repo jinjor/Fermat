@@ -18,13 +18,11 @@ object Web {
     val htmlDeps = _htmlDeps.reverse
     val htmlComponent = htmlDeps.last
 
-    val script = JavaScript.expression(htmlComponent)
     val classDefs = htmlDeps.map { component =>
       //println(component.className)
       JavaScript.clazzDef(component)
     }
-
-    val wholeScript = makeWholeScript(classDefs, script)
+    val wholeScript = makeWholeScript(classDefs, htmlComponent)
 
     val html = s"""
       <html>
@@ -39,11 +37,8 @@ object Web {
     Output("sandbox/out.html", html)
   }
 
-  def makeWholeScript(classDefs: Seq[String], instanceScript: String) = s"""<script>
-  	$$(function(){
-		${classDefs.mkString("\n")}
-  	    $$('body').html(${instanceScript});
-  	});
+  def makeWholeScript(classDefs: Seq[String], topComponent: HtmlComponent) = s"""<script>
+  	${JavaScript.makeWholeScript(classDefs, topComponent)}
   </script>"""
 
 

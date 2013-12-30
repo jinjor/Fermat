@@ -12,14 +12,11 @@ object JavaScript {
 
   abstract class ElementProf {
     def elementVarName: String
-    def  events: Iterable[Event]
   }
   case class GeneralProf(elementVarName: String, elementExpression: String,
     innerData: InnerData, events: Iterable[Event]) extends ElementProf
   case class ComponentProf(componentVarName: String, elementVarName: String,
-      componentExpression: String) extends ElementProf {
-    val events = Nil
-  }
+    componentExpression: String) extends ElementProf
 
   lazy val preLoadTagsAsString: String = {
     """<script src="../lib/jquery-2.0.3.min.js"></script>
@@ -40,15 +37,13 @@ object JavaScript {
     id = id + 1
     "var" + id;
   }
-  
-  
 
   def elementProf(html: Html): Option[ElementProf] = html match {
     case html: HtmlNode => {
       val s = Html.toHtmlString(html)
       if (s.isEmpty) {
         None
-      }else{
+      } else {
         val elementExpression = s"""$$('$s')"""
         val innerData: InnerData =
           if (html.children.isEmpty) {
@@ -64,63 +59,75 @@ object JavaScript {
         Some(GeneralProf(elementVarName, elementExpression, innerData, events))
       }
     }
-    case html: HtmlComponentNode => {//
-    	val args = (html.node.attributes.map { attr =>
-    	  s"get ${attr.key}(){ return scope.${attr.value} }"
-    	}).mkString(",\n")
-    	val arg = s"{\n${args}}"
-        val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
-        val innerData: InnerData = InnerDataCapsuled
-        val events = Event.eventsOf(html.node)
-        val componentVarName = crateNewVarName()
-        val elementVarName = crateNewVarName()
-        Some(ComponentProf(componentVarName, elementVarName, componentExpression))
+    case html: HtmlComponentNode => { //
+      val args = (html.node.attributes.map { attr =>
+        s"""get ${attr.key}(){ return scope.${attr.value}; },
+    	  set ${attr.key}(v){ scope.${attr.value} = v; },"""
+      }).mkString(",\n")
+      val arg = s"{\n${args}}"
+      val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
+      val innerData: InnerData = InnerDataCapsuled
+      val componentVarName = crateNewVarName()
+      val elementVarName = crateNewVarName()
+      Some(ComponentProf(componentVarName, elementVarName, componentExpression))
     }
   }
-  
-  def innerDataAppend(prof: ElementProf): String = {
-    prof match {
-      case prof: GeneralProf => {
-	      (prof.innerData match {
-	      case InnerElements(children) => (children.map { child =>
-	        val s = JavaScript.expression(child)
-	        if (s.isEmpty) "" else s"""\n.append($s)"""
-	      }).mkString
-	      case _ => ""
-	    })
-      }
-      case prof: ComponentProf => ""
-    }
+
+  def innerDataAppend(prof: GeneralProf): String = {
+    (prof.innerData match {
+      case InnerElements(children) => (children.map { child =>
+        val s = JavaScript.expression(child)
+        if (s.isEmpty) "" else s"""\n.append($s)"""
+      }).mkString
+      case _ => ""
+    })
   }
 
   def expression(prof: ElementProf): String = {
-    val s2 = s"""$$(${prof.elementVarName})${innerDataAppend(prof)}"""
-    val events = prof.events
-    events.foldLeft(s2) { (memo, event) =>
-      s"""${memo}.on('${event.name}', function(){
-     ${event.methodName}(this);
-     self.render();
-    })"""
+    prof match {
+      case prof: GeneralProf => {
+        val s = s"""$$(${prof.elementVarName})${innerDataAppend(prof)}"""
+        val events = prof.events
+        events.foldLeft(s) { (memo, event) =>
+          s"""${memo}.on('${event.name}', function(){
+	       ${event.methodName}(this);
+	       self.trigger('update')
+	    })"""
+        }
+      }
+      case prof: ComponentProf => {
+        val s = s"""${prof.elementVarName}"""
+        s
+      }
     }
+
   }
 
-  def expression(html: HtmlComponent): String = {
-    s"new ${Html.classNameOf(html.component)}({}).$$el" //TODO args
-  }
+  def makeWholeScript(classDefs: Seq[String], topComponent: HtmlComponent) = s"""
+  	$$(function(){
+		${classDefs.mkString("\n")}
+  		var top = new ${Html.classNameOf(topComponent.component)}({});
+  		top.on("update", function(){
+  			top.render();
+  		});
+  	    $$('body').html(top.$$el);
+  	});"""
+
   def elementDeclarations(prof: ElementProf): List[String] = {
     prof match {
       case prof: GeneralProf => {
         val ownDeclaration = s"""var ${prof.elementVarName} = ${prof.elementExpression};"""
-	    ownDeclaration :: (prof.innerData match {
-	      case InnerElements(children) =>
-	        children.toList.flatMap(elementDeclarations)
-	      case _ => Nil
-	    })
+        ownDeclaration :: (prof.innerData match {
+          case InnerElements(children) =>
+            children.toList.flatMap(elementDeclarations)
+          case _ => Nil
+        })
       }
       case prof: ComponentProf => {
         val ownDeclaration = s"""var ${prof.componentVarName} = ${prof.componentExpression};"""
+        val eventAttaching = s"""${prof.componentVarName}.on('update', function(){ self.trigger('update') });"""
         val ownElementDeclaration = s"""var ${prof.elementVarName} = ${prof.componentVarName}.$$el;"""
-        List(ownDeclaration, ownElementDeclaration)
+        List(ownDeclaration, eventAttaching, ownElementDeclaration)
       }
     }
   }
@@ -128,12 +135,12 @@ object JavaScript {
   def renderScripts(ep: ElementProf): Seq[String] = {
     ep match {
       case prof: GeneralProf => (prof.innerData match {
-	      case InnerDynamicText(modelVarName) =>
-	        List(s"${prof.elementVarName}.text(scope.${modelVarName})")
-	      case InnerElements(children) =>
-	        children.flatMap(renderScripts)
-	      case _ => Nil
-	    })
+        case InnerDynamicText(modelVarName) =>
+          List(s"${prof.elementVarName}.text(scope.${modelVarName})")
+        case InnerElements(children) =>
+          children.flatMap(renderScripts)
+        case _ => Nil
+      })
       case prof: ComponentProf => List(s"${prof.componentVarName}.render()")
     }
   }
@@ -162,11 +169,7 @@ object JavaScript {
     	${elementDeclaration}
     	this.$$el.html($$($expr));
     	self.render = function(){
-	    	if(scope.model){//TODO
-    			self.trigger('update');
-			}else{
-			    ${renderScriptStr}
-			}
+    	    ${renderScriptStr}
     	};
 	    self.render();
 	  }
