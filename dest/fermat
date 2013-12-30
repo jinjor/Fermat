@@ -1,3 +1,14 @@
 #!/usr/bin/env node
 
-console.log('fermat')
+var exec = require('child_process').exec;
+
+var child = exec('java', function(err, stdout, stderr) {
+  if (!err) {
+    console.log('stdout: ' + stdout);
+    console.log('stderr: ' + stderr)
+  } else {
+    console.log(err);
+    console.log(err.code);
+    console.log(err.signal);
+  }
+})
