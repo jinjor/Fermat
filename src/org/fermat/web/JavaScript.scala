@@ -8,6 +8,7 @@ object JavaScript {
   case class InnerElements(children: Seq[ElementProf]) extends InnerData
   case class InnerStaticText(text: String) extends InnerData
   case class InnerDynamicText(modelName: String) extends InnerData
+  case object InnerDataCapsuled extends InnerData
 
   case class ElementProf(elementVarName: String, elementExpression: String,
     innerData: InnerData, events: Iterable[Event])
@@ -31,25 +32,37 @@ object JavaScript {
     id = id + 1
     "var" + id;
   }
+  
+  
 
-  def elementProf(html: HtmlNode): Option[ElementProf] = {
-    val s = html.toHtmlString
-    if (s.isEmpty) {
-      return None
+  def elementProf(html: Html): Option[ElementProf] = html match {
+    case html: HtmlNode => {
+      val s = Html.toHtmlString(html)
+      if (s.isEmpty) {
+        None
+      }else{
+        val elementExpression = s"""$$('$s')"""
+        val innerData: InnerData =
+          if (html.children.isEmpty) {
+            html.node.attribute("data") match {
+              case Some(attr) => InnerDynamicText(attr.toString)
+              case None => InnerStaticText(html.node.text) //TODO 
+            }
+          } else InnerElements(html.children.flatMap { child =>
+            JavaScript.elementProf(child)
+          })
+        val events = Event.eventsOf(html.node)
+        val elementVarName = crateNewVarName()
+        Some(ElementProf(elementVarName, elementExpression, innerData, events))
+      }
     }
-    val elementExpression = s"""$$('$s')"""
-    val innerData: InnerData =
-      if (html.children.isEmpty) {
-        html.node.attribute("data") match {
-          case Some(attr) => InnerDynamicText(attr.toString)
-          case None => InnerStaticText(html.node.text) //TODO 
-        }
-      } else InnerElements(html.children.flatMap { child =>
-        JavaScript.elementProf(child)
-      })
-    val events = Event.eventsOf(html.node)
-    val elementVarName = crateNewVarName()
-    Some(ElementProf(elementVarName, elementExpression, innerData, events))
+    case html: HtmlComponentNode => {
+        val elementExpression = s"""new ${Html.classNameOf(html.component)}({}).$$el"""
+        val innerData: InnerData = InnerDataCapsuled
+        val events = Event.eventsOf(html.node)
+        val elementVarName = crateNewVarName()
+        Some(ElementProf(elementVarName, elementExpression, innerData, events))
+    }
   }
 
   def expression(prof: ElementProf): String = {
@@ -70,7 +83,7 @@ object JavaScript {
   }
 
   def expression(html: HtmlComponent): String = {
-    s"new ${html.className}({}).$$el" //TODO args
+    s"new ${Html.classNameOf(html.component)}({}).$$el" //TODO args
   }
   def elementDeclarations(prof: ElementProf): List[String] = {
     s"""var ${prof.elementVarName} = ${prof.elementExpression};""" :: (prof.innerData match {
@@ -126,7 +139,7 @@ object JavaScript {
 	}, Backbone.Events))"""
   }
   def clazzDef(htmlComponent: HtmlComponent): String = {
-    s"var ${htmlComponent.className} = ${clazz(htmlComponent)};"
+    s"var ${Html.classNameOf(htmlComponent.component)} = ${clazz(htmlComponent)};"
   }
   /*
   def allEvents(htmlNodes: Seq[HtmlNode]): Seq[Event] = {

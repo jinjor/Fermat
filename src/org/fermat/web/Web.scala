@@ -6,11 +6,16 @@ import org.fermat.Event
 import org.fermat.util.Output
 import org.fermat.Dependency
 
-
 object Web {
 
   def all(deps: List[Component]): Output = {
-    val htmlDeps = deps.map(Html.apply)
+    val componentMap = Map[String, Component]()
+    val (_, _htmlDeps) = (deps.foldLeft((componentMap, List[HtmlComponent]())){
+      case ((componentMap, htmlDeps), component) =>
+        val html = Html(component, componentMap.get _)
+        (componentMap + (component.node.attribute("name").get.toString -> component), html :: htmlDeps)
+    })
+    val htmlDeps = _htmlDeps.reverse
     val htmlComponent = htmlDeps.last
 
     val script = JavaScript.expression(htmlComponent)
