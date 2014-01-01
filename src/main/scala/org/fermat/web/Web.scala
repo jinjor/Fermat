@@ -8,7 +8,7 @@ import org.fermat.Dependency
 
 object Web {
 
-  def all(deps: List[Component]): Output = {
+  def all(root: String, deps: List[Component]): Output = {
     val componentMap = Map[String, Component]()
     val (_, _htmlDeps) = (deps.foldLeft((componentMap, List[HtmlComponent]())){
       case ((componentMap, htmlDeps), component) =>
@@ -34,7 +34,7 @@ object Web {
         </body>
       </html>"""
 
-    Output("sandbox/out.html", html)
+    Output(s"${root}/out/index.html", html)
   }
 
   def makeWholeScript(classDefs: Seq[String], topComponent: HtmlComponent) = s"""<script>

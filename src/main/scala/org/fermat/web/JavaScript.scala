@@ -19,11 +19,11 @@ object JavaScript {
   case class ComponentProf(componentVarName: String, elementVarName: String,
     componentExpression: String) extends ElementProf
 
-  lazy val preLoadTagsAsString: String = {
-    """<script src="../lib/jquery-2.0.3.min.js"></script>
-    	<script src="../lib/underscore-min.js"></script>
-    	<script src="../lib/backbone-min.js"></script>
-	  <script src="../lib/Bacon.min.js"></script>"""
+  lazy val preLoadTagsAsString: String = {//TODO
+    """<script src="./lib/jquery-2.0.3.min.js"></script>
+    	<script src="./lib/underscore-min.js"></script>
+    	<script src="./lib/backbone-min.js"></script>
+	  <script src="./lib/Bacon.min.js"></script>"""
   }
 
   var id = 0

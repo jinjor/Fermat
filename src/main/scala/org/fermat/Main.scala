@@ -25,7 +25,7 @@ object Main {
     Component(jarPath, fullPathOfTop) match {
       case Right(topComponent) => {
         val deps = Dependency.getAllComponent(jarPath, topComponent, fullPathOf)
-        Dao.write(Web.all(deps))
+        Dao.write(Web.all(root, deps))
       }
       case Left(ex) => ex.cause.printStackTrace()
     }
