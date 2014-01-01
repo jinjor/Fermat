@@ -18,7 +18,7 @@ object Component {
   case class FermatValidationException(cause: Exception) extends FermatException
   case class FermatFileNotFoundException(cause: Exception) extends FermatException
 
-  private val XSD_PATH = "src/fermat.xsd"
+  private val XSD_PATH = "fermat.xsd"//TODO
 
   def apply(path: String): Either[FermatException, Component] = {
     val node = Dao.loadXml(path)
