@@ -18,11 +18,9 @@ object Component {
   case class FermatValidationException(cause: Exception) extends FermatException
   case class FermatFileNotFoundException(cause: Exception) extends FermatException
 
-  private val XSD_PATH = "fermat.xsd"//TODO
-
-  def apply(path: String): Either[FermatException, Component] = {
+  def apply(jarPath:String, path: String): Either[FermatException, Component] = {
     val node = Dao.loadXml(path)
-    Component.validate(XSD_PATH, path) match {
+    Component.validate(jarPath + "/fermat.xsd", path) match {
       case Right(_) => {
         val requires = (node \ "require").map(xml => Require(xml))
         val template = (node \ "template")(0)
@@ -39,7 +37,7 @@ object Component {
       val factory = SchemaFactory.newInstance(schemaLang)
       val schema = factory.newSchema(new StreamSource(xsdFile))
       val validator = schema.newValidator()
-      validator.validate(new StreamSource(xmlFile))
+      validator.validate(new StreamSource(xmlFile))// TODO read many times...
       Right()
     } catch {
       case ex: Exception => Left(ex)

@@ -8,22 +8,23 @@ object Main {
 
   def main(args: Array[String]) = {
     println("start!")
-    val root = args(0)
-    val top = args(1)
+    val jarPath = args(0)
+    val root = args(1)
+    val top = args(2)
     println(s"root: $root top:$top")
 
-    exec(root, top)
+    exec(jarPath, root, top)
     println("end!")
   }
 
-  def exec(root: String, top: String) {
+  def exec(jarPath:String, root: String, top: String) {
 
     val fullPathOf = (s: String) => root + "/" + s
     val fullPathOfTop = fullPathOf(top)
 
-    Component(fullPathOfTop) match {
+    Component(jarPath, fullPathOfTop) match {
       case Right(topComponent) => {
-        val deps = Dependency.getAllComponent(topComponent, fullPathOf)
+        val deps = Dependency.getAllComponent(jarPath, topComponent, fullPathOf)
         Dao.write(Web.all(deps))
       }
       case Left(ex) => ex.cause.printStackTrace()
