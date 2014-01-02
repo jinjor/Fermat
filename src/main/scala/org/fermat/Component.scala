@@ -31,8 +31,6 @@ object Component {
           }
         }).map(xml => TranscludeArg(xml))
         
-        println(transcludeArgs)
-        
         val template = (node \ "template")(0)
         val script = (node \ "script").headOption
         Right(Component(node, requires, transcludeArgs, Template(template), Script(script)))

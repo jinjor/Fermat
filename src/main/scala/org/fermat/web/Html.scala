@@ -33,7 +33,6 @@ object Html {
   }
 
   def toTranscludeArgNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeArgNode] = {
-    println(node.label)
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
         HtmlTranscludeArgNode(node, node.child.map { child =>
