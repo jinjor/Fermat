@@ -71,9 +71,9 @@ object JavaScript {
     case html: HtmlComponentNode => { //
       val args = (html.node.attributes.map { attr =>
         s"""get ${attr.key}(){return scope.${attr.value}; },
-    	  set ${attr.key}(v){ scope.${attr.value} = v; },"""
+    	  set ${attr.key}(v){ scope.${attr.value} = v; }"""
       }).mkString(",\n")
-      val arg = s"{\nparent: scope,\n${args}}"//TODO name
+      val arg = s"{\n${args}}"//TODO name
       val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
       val innerData: InnerData = InnerDataCapsuled
       val componentVarName = crateNewVarName()
@@ -160,7 +160,7 @@ object JavaScript {
         case _ => Nil
       })
       case prof: TranscludeProf => {
-        Nil
+        List(s"${prof.elementVarName}.html(scope.${prof.name}(scope))")
       }
       case prof: ComponentProf => List(s"${prof.componentVarName}.render()")
     }
