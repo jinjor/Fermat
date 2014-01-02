@@ -78,7 +78,7 @@ object JavaScript {
     	${renderScripts}
       }"""
       val args = (html.node.attributes.map { attr =>
-        s"""get ${attr.key}(){return scope.${attr.value}; },
+        s"""get ${attr.key}(){return scope.${attr.value}; },//TODO
     	  set ${attr.key}(v){ scope.${attr.value} = v; }"""
       }).mkString(",\n")
       val arg = s"{\n${args}}" //TODO name

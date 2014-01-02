@@ -14,9 +14,9 @@ object Html {
   def apply(node: Node, getComponentByName: String => Option[Component]): Html = {
     getComponentByName(node.label) match {
       case Some(component) => {
-    	val children = node.child.map { child =>
-          toTranscludeNode(node, component, getComponentByName)
-        }
+        val children = node.child.map { child =>
+          toTranscludeNode(child, component, getComponentByName)
+        }.flatten
         HtmlComponentNode(node, children, component)
       }
       case None => {
@@ -27,17 +27,17 @@ object Html {
       }
     }
   }
-  
-  def toTranscludeNode(node: Node, component: Component, getComponentByName: String => Option[Component])
-  	: HtmlTranscludeNode = {
-    component.transcludeArgsAsMap.get(node.label) match {
-      case Some(targ) => HtmlTranscludeNode(node, node.child.map { child =>
+
+  def toTranscludeNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeNode] = {
+    println(node.label)
+    component.transcludeArgsAsMap.get(node.label) map {
+      targ =>
+        HtmlTranscludeNode(node, node.child.map { child =>
           apply(child, getComponentByName)
         })
-      case None => {throw new IllegalStateException("argument not valid")}//TODO
     }
   }
-  
+
   def toHtmlString(htmlNode: HtmlNode): String = {
     val node = htmlNode.node
     if (node.isAtom) node.text.trim else {

@@ -23,7 +23,16 @@ object Component {
     Component.validate(jarPath + "/fermat.xsd", path) match {
       case Right(_) => {
         val requires = (node \ "require").map(xml => Require(xml))
-        val transcludeArgs = (node \ "transclude").map(xml => TranscludeArg(xml))
+        val args = (node \ "arg")
+        val transcludeArgs = (args.filter { a =>
+          a.attribute("transclude") match {
+            case Some(attr) if(attr.toString == "true") => true
+            case None => false
+          }
+        }).map(xml => TranscludeArg(xml))
+        
+        println(transcludeArgs)
+        
         val template = (node \ "template")(0)
         val script = (node \ "script").headOption
         Right(Component(node, requires, transcludeArgs, Template(template), Script(script)))
