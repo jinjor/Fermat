@@ -36,4 +36,16 @@ case class HtmlComponent(component: Component, template: HtmlNode, script: Strin
 
 sealed abstract class Html
 case class HtmlNode(node: Node, children: Seq[Html]) extends Html
+case class HtmlTranscludeNode(node: Node, children: Seq[Html]) extends Html
 case class HtmlComponentNode(node: Node, children: Seq[Html], component: Component) extends Html
+
+
+
+
+
+
+
+
+
+
+

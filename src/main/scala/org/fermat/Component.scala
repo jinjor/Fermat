@@ -46,7 +46,8 @@ object Component {
   }
 
 }
-case class Component(node: Node, requires: Seq[Require], transcludeArgs:Seq[TranscludeArg], template: Template, script: Script)
+case class Component(node: Node, requires: Seq[Require], transcludeArgs:Seq[TranscludeArg],
+    template: Template, script: Script)
 
 abstract sealed class FermatNode
 case class Require(node: Node) extends FermatNode

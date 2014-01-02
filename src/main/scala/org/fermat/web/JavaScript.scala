@@ -11,11 +11,13 @@ object JavaScript {
   case class InnerInputText(modelName: String) extends InnerData
   case object InnerDataCapsuled extends InnerData
 
-  abstract class ElementProf {
+  abstract sealed class ElementProf {
     def elementVarName: String
   }
   case class GeneralProf(elementVarName: String, elementExpression: String,
     innerData: InnerData, events: Iterable[Event]) extends ElementProf
+  case class TranscludeProf(elementVarName: String, elementExpression: String,
+    name: String) extends ElementProf
   case class ComponentProf(componentVarName: String, elementVarName: String,
     componentExpression: String) extends ElementProf
 
@@ -61,13 +63,17 @@ object JavaScript {
         val elementVarName = crateNewVarName()
         Some(GeneralProf(elementVarName, elementExpression, innerData, events))
       }
+    }case html: HtmlTranscludeNode => { //
+      val elementVarName = crateNewVarName()
+      val name = html.node.label
+      Some(TranscludeProf(elementVarName, elementVarName, name))
     }
     case html: HtmlComponentNode => { //
       val args = (html.node.attributes.map { attr =>
-        s"""get ${attr.key}(){ return scope.${attr.value}; },
+        s"""get ${attr.key}(){return scope.${attr.value}; },
     	  set ${attr.key}(v){ scope.${attr.value} = v; },"""
       }).mkString(",\n")
-      val arg = s"{\n${args}}"
+      val arg = s"{\nparent: scope,\n${args}}"//TODO name
       val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
       val innerData: InnerData = InnerDataCapsuled
       val componentVarName = crateNewVarName()
@@ -98,6 +104,10 @@ object JavaScript {
 	    })"""
         }
       }
+      case prof: TranscludeProf => {
+        val s = s"""${prof.elementVarName}"""
+        s
+      }
       case prof: ComponentProf => {
         val s = s"""${prof.elementVarName}"""
         s
@@ -126,6 +136,9 @@ object JavaScript {
           case _ => Nil
         })
       }
+      case prof: TranscludeProf => {
+        List(s"""var ${prof.elementVarName} = ${prof.elementExpression};""")
+      }
       case prof: ComponentProf => {
         val ownDeclaration = s"""var ${prof.componentVarName} = ${prof.componentExpression};"""
         val eventAttaching = s"""${prof.componentVarName}.on('update', function(){ self.trigger('update') });"""
@@ -146,6 +159,9 @@ object JavaScript {
           children.flatMap(renderScripts)
         case _ => Nil
       })
+      case prof: TranscludeProf => {
+        Nil
+      }
       case prof: ComponentProf => List(s"${prof.componentVarName}.render()")
     }
   }
