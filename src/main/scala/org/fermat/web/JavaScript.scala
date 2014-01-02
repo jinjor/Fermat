@@ -64,28 +64,33 @@ object JavaScript {
         Some(GeneralProf(elementVarName, elementExpression, innerData, events))
       }
     } case html: HtmlTranscludeNode => { //
+      println(html.node.label)
       val elementVarName = crateNewVarName()
       val name = html.node.label
       Some(TranscludeProf(elementVarName, elementVarName, name))
     }
     case html: HtmlComponentNode => { //
-      val renderScripts = html.children.flatMap { child =>
-        JavaScript.elementProf(child)
-      }.flatMap { child =>
-        JavaScript.renderScripts(child)
+      val renderFunctions = for {
+        (name, el) <- for {
+          child <- html.children
+          el <- JavaScript.elementProf(child)
+        } yield (child.node.label, el)
+        renderScripts = JavaScript.renderScripts(el)
+        renderFunction = s"""function(scope){//child scope including parents'
+    	  ${renderScripts.mkString("\n")}
+        }"""
+      } yield (name, renderFunction)
+      val keyValues = renderFunctions.map {
+        case (name, f) =>
+          s"""${name}: ${f}"""
       }
-      val renderFunction = s"""function(scope){//child scope including parents'
-    	${renderScripts}
-      }"""
       val args = (html.node.attributes.map { attr =>
         s"""get ${attr.key}(){return scope.${attr.value}; },//TODO
     	  set ${attr.key}(v){ scope.${attr.value} = v; }"""
-      }).mkString(",\n")
-      val arg = s"{\n${args}}" //TODO name
-
-      
-      
-
+      })
+      val arg = s"""{
+      	${(args ++ keyValues).mkString(",")}
+      }""" //TODO name
       val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
       val innerData: InnerData = InnerDataCapsuled
       val componentVarName = crateNewVarName()
