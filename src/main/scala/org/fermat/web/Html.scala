@@ -15,20 +15,24 @@ object Html {
     getComponentByName(node.label) match {
       case Some(component) => {
         val children = node.child.map { child =>
-          toTranscludeNode(child, component, getComponentByName)
+          toTranscludeArgNode(child, component, getComponentByName)
         }.flatten
         HtmlComponentNode(node, children, component)
       }
       case None => {
-        val children = node.child.map { child =>
-          apply(child, getComponentByName)
+        if (node.label == "transclude") {
+          HtmlTranscludeTargetNode(node)
+        } else {
+          val children = node.child.map { child =>
+            apply(child, getComponentByName)
+          }
+          HtmlNode(node, children)
         }
-        HtmlNode(node, children)
       }
     }
   }
 
-  def toTranscludeNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeArgNode] = {
+  def toTranscludeArgNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeArgNode] = {
     println(node.label)
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
