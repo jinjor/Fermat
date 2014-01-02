@@ -47,7 +47,9 @@ object Component {
 
 }
 case class Component(node: Node, requires: Seq[Require], transcludeArgs:Seq[TranscludeArg],
-    template: Template, script: Script)
+    template: Template, script: Script){
+  lazy val transcludeArgsAsMap = transcludeArgs.map(ta => (ta.node.attribute("name").get.toString -> ta)).toMap
+}
 
 abstract sealed class FermatNode
 case class Require(node: Node) extends FermatNode

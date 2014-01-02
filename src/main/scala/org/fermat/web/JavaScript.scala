@@ -21,7 +21,7 @@ object JavaScript {
   case class ComponentProf(componentVarName: String, elementVarName: String,
     componentExpression: String) extends ElementProf
 
-  lazy val preLoadTagsAsString: String = {//TODO
+  lazy val preLoadTagsAsString: String = { //TODO
     """<script src="./lib/jquery-2.0.3.min.js"></script>
     	<script src="./lib/underscore-min.js"></script>
     	<script src="./lib/backbone-min.js"></script>
@@ -63,17 +63,29 @@ object JavaScript {
         val elementVarName = crateNewVarName()
         Some(GeneralProf(elementVarName, elementExpression, innerData, events))
       }
-    }case html: HtmlTranscludeNode => { //
+    } case html: HtmlTranscludeNode => { //
       val elementVarName = crateNewVarName()
       val name = html.node.label
       Some(TranscludeProf(elementVarName, elementVarName, name))
     }
     case html: HtmlComponentNode => { //
+      val renderScripts = html.children.flatMap { child =>
+        JavaScript.elementProf(child)
+      }.flatMap { child =>
+        JavaScript.renderScripts(child)
+      }
+      val renderFunction = s"""function(scope){//child scope including parents'
+    	${renderScripts}
+      }"""
       val args = (html.node.attributes.map { attr =>
         s"""get ${attr.key}(){return scope.${attr.value}; },
     	  set ${attr.key}(v){ scope.${attr.value} = v; }"""
       }).mkString(",\n")
-      val arg = s"{\n${args}}"//TODO name
+      val arg = s"{\n${args}}" //TODO name
+
+      
+      
+
       val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
       val innerData: InnerData = InnerDataCapsuled
       val componentVarName = crateNewVarName()
