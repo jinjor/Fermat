@@ -28,17 +28,33 @@ object Html {
     }
   }
 
-  def toTranscludeNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeNode] = {
+  def toTranscludeNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeArgNode] = {
     println(node.label)
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
-        HtmlTranscludeNode(node, node.child.map { child =>
+        HtmlTranscludeArgNode(node, node.child.map { child =>
           apply(child, getComponentByName)
         })
     }
   }
 
   def toHtmlString(htmlNode: HtmlNode): String = {
+    val node = htmlNode.node
+    if (node.isAtom) node.text.trim else {
+      //val attributes = node.attributes
+      s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
+      //node.toString
+    }
+  }
+  def toHtmlString(htmlNode: HtmlTranscludeTargetNode): String = {
+    val node = htmlNode.node
+    if (node.isAtom) node.text.trim else {
+      //val attributes = node.attributes
+      s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
+      //node.toString
+    }
+  }
+  def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
     val node = htmlNode.node
     if (node.isAtom) node.text.trim else {
       //val attributes = node.attributes
@@ -53,8 +69,9 @@ case class HtmlComponent(component: Component, template: HtmlNode, script: Strin
 
 sealed abstract class Html
 case class HtmlNode(node: Node, children: Seq[Html]) extends Html
-case class HtmlTranscludeNode(node: Node, children: Seq[Html]) extends Html
-case class HtmlComponentNode(node: Node, children: Seq[HtmlTranscludeNode], component: Component) extends Html
+case class HtmlTranscludeTargetNode(node: Node) extends Html
+case class HtmlTranscludeArgNode(node: Node, children: Seq[Html]) extends Html
+case class HtmlComponentNode(node: Node, children: Seq[HtmlTranscludeArgNode], component: Component) extends Html
 
 
 

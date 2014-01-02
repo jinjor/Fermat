@@ -16,8 +16,11 @@ object JavaScript {
   }
   case class GeneralProf(elementVarName: String, elementExpression: String,
     innerData: InnerData, events: Iterable[Event]) extends ElementProf
-  case class TranscludeProf(elementVarName: String, elementExpression: String,
+   case class TranscludeArgProf(elementVarName: String, elementExpression: String,
+    innerData: InnerData, events: Iterable[Event]) extends ElementProf
+  case class TranscludeTargetProf(elementVarName: String, elementExpression: String,
     name: String) extends ElementProf
+
   case class ComponentProf(componentVarName: String, elementVarName: String,
     componentExpression: String) extends ElementProf
 
@@ -35,6 +38,10 @@ object JavaScript {
   }
 
   def kindOfInput(html: HtmlNode): Boolean = {
+    (html.node.label == "input" && html.node.attribute("type").get.toString.trim == "text") ||
+      (html.node.label == "textarea")
+  }
+  def kindOfInput(html: HtmlTranscludeArgNode): Boolean = {
     (html.node.label == "input" && html.node.attribute("type").get.toString.trim == "text") ||
       (html.node.label == "textarea")
   }
@@ -63,11 +70,37 @@ object JavaScript {
         val elementVarName = crateNewVarName()
         Some(GeneralProf(elementVarName, elementExpression, innerData, events))
       }
-    } case html: HtmlTranscludeNode => { //
-      println(html.node.label)
-      val elementVarName = crateNewVarName()
+    }
+    case html: HtmlTranscludeArgNode => { //
+      val s = Html.toHtmlString(html)
+      if (s.isEmpty) {
+        None
+      } else {
+        val elementExpression = s"""$$('$s')"""
+        val innerData: InnerData =
+          if (html.children.isEmpty) {
+            html.node.attribute("data") match {
+              case Some(attr) => if (kindOfInput(html)) {
+                InnerInputText(attr.toString)
+              } else {
+                InnerDynamicText(attr.toString)
+              }
+              case None => InnerStaticText(html.node.text) //TODO 
+            }
+          } else InnerElements(html.children.flatMap { child =>
+            JavaScript.elementProf(child)
+          })
+        val events = Event.eventsOf(html.node)
+        val elementVarName = crateNewVarName()
+        Some(TranscludeArgProf(elementVarName, elementExpression, innerData, events))
+      }
+    }
+    case html: HtmlTranscludeTargetNode => {//TODO refactor
+       val elementVarName = crateNewVarName()
+      val s = Html.toHtmlString(html)
+      val elementExpression = s"""$$('$s')"""
       val name = html.node.label
-      Some(TranscludeProf(elementVarName, elementVarName, name))
+      Some(TranscludeTargetProf(elementVarName, elementExpression, name))
     }
     case html: HtmlComponentNode => { //
       val renderFunctions = for {
@@ -82,7 +115,7 @@ object JavaScript {
       } yield (name, renderFunction)
       val keyValues = renderFunctions.map {
         case (name, f) =>
-          s"""${name}: ${f}"""
+          s"""'${name}': ${f}"""
       }
       val args = (html.node.attributes.map { attr =>
         s"""get ${attr.key}(){return scope.${attr.value}; },//TODO
@@ -121,7 +154,11 @@ object JavaScript {
 	    })"""
         }
       }
-      case prof: TranscludeProf => {
+      case prof: TranscludeArgProf => {
+        val s = s"""${prof.elementVarName}"""
+        s
+      }
+      case prof: TranscludeTargetProf => {
         val s = s"""${prof.elementVarName}"""
         s
       }
@@ -153,7 +190,10 @@ object JavaScript {
           case _ => Nil
         })
       }
-      case prof: TranscludeProf => {
+      case prof: TranscludeArgProf => {
+        List(s"""var ${prof.elementVarName} = ${prof.elementExpression};""")
+      }
+      case prof: TranscludeTargetProf => {
         List(s"""var ${prof.elementVarName} = ${prof.elementExpression};""")
       }
       case prof: ComponentProf => {
@@ -176,8 +216,17 @@ object JavaScript {
           children.flatMap(renderScripts)
         case _ => Nil
       })
-      case prof: TranscludeProf => {
-        List(s"${prof.elementVarName}.html(scope.${prof.name}(scope))")
+      case prof: TranscludeArgProf =>(prof.innerData match {//TODO refactor
+        case InnerDynamicText(modelVarName) =>
+          List(s"${prof.elementVarName}.text(scope.${modelVarName})")
+        case InnerInputText(modelVarName) =>
+          List(s"""!${prof.elementVarName}.is(":focus") && ${prof.elementVarName}.val(scope.${modelVarName})""")
+        case InnerElements(children) =>
+          children.flatMap(renderScripts)
+        case _ => Nil
+      })
+      case prof: TranscludeTargetProf => {
+        List(s"${prof.elementVarName}.html(scope.${prof.name}(scope))")//TODO replace?
       }
       case prof: ComponentProf => List(s"${prof.componentVarName}.render()")
     }
