@@ -23,9 +23,10 @@ object Component {
     Component.validate(jarPath + "/fermat.xsd", path) match {
       case Right(_) => {
         val requires = (node \ "require").map(xml => Require(xml))
+        val transcludeArgs = (node \ "transclude").map(xml => TranscludeArg(xml))
         val template = (node \ "template")(0)
         val script = (node \ "script").headOption
-        Right(Component(node, requires, Template(template), Script(script)))
+        Right(Component(node, requires, transcludeArgs, Template(template), Script(script)))
       }
       case Left(ex) => Left(FermatValidationException(ex))
     }
@@ -45,13 +46,13 @@ object Component {
   }
 
 }
-case class Component(node: Node, requires: Seq[Require], template: Template, script: Script)
+case class Component(node: Node, requires: Seq[Require], transcludeArgs:Seq[TranscludeArg], template: Template, script: Script)
 
 abstract sealed class FermatNode
 case class Require(node: Node) extends FermatNode
 case class Template(node: Node) extends FermatNode
 case class Script(node: Option[Node]) extends FermatNode
-
+case class TranscludeArg(node: Node) extends FermatNode
 
 
 
