@@ -41,9 +41,9 @@ object Html {
     }
   }
 
-  def toHtmlString(htmlNode: HtmlNode): String = {
+  def toHtmlString(htmlNode: HtmlNode): String = {//TODO
     val node = htmlNode.node
-    if (node.isAtom) node.text.trim else {
+    if (node.isAtom) "" else {
       //val attributes = node.attributes
       s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
       //node.toString
@@ -51,7 +51,7 @@ object Html {
   }
   def toHtmlString(htmlNode: HtmlTranscludeTargetNode): String = {
     val node = htmlNode.node
-    if (node.isAtom) node.text.trim else {
+    if (node.isAtom) "" else {
       //val attributes = node.attributes
       s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
       //node.toString
@@ -59,7 +59,7 @@ object Html {
   }
   def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
     val node = htmlNode.node
-    if (node.isAtom) node.text.trim else {
+    if (node.isAtom) "" else {
       //val attributes = node.attributes
       s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
       //node.toString
