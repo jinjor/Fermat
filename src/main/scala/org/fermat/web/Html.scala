@@ -5,9 +5,9 @@ import org.fermat.Component
 
 object Html {
   def apply(component: Component, getComponentByTagLabel: String => Option[Component]): HtmlComponent = {
-    val template = HtmlNode(component.template.node, component.template.node.child.map { child =>
+    val template = HtmlNode(component.template.node, HtmlInnerNodes(component.template.node.child.map { child =>
       apply(child, getComponentByTagLabel)
-    })
+    }))
     val script = component.script.node.map(_.text).getOrElse("")
     HtmlComponent(component, template, script)
   }
@@ -26,7 +26,19 @@ object Html {
           val children = node.child.map { child =>
             apply(child, getComponentByName)
           }
-          HtmlNode(node, children)
+          if(node.toString.trim.isEmpty){
+            
+          }else{
+            
+          }
+          val inner = (children match {
+            case List(HtmlNode(node, _)) if node.isAtom => Some(node.text)
+            case _ => None
+          }) match {
+            case Some(text) => HtmlInnerText(text)
+            case None => HtmlInnerNodes(children)
+          }
+          HtmlNode(node, inner)
         }
       }
     }
@@ -35,9 +47,9 @@ object Html {
   def toTranscludeArgNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeArgNode] = {
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
-        HtmlTranscludeArgNode(node, node.child.map { child =>
+        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.child.map { child =>
           apply(child, getComponentByName)
-        })
+        }))
     }
   }
 
@@ -45,7 +57,7 @@ object Html {
     val node = htmlNode.node
     if (node.isAtom) "" else {
       //val attributes = node.attributes
-      s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
+      s"<${node.label}></${node.label}>" //TODO
       //node.toString
     }
   }
@@ -53,7 +65,7 @@ object Html {
     val node = htmlNode.node
     if (node.isAtom) "" else {
       //val attributes = node.attributes
-      s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
+      s"<${node.label}></${node.label}>" //TODO
       //node.toString
     }
   }
@@ -61,7 +73,7 @@ object Html {
     val node = htmlNode.node
     if (node.isAtom) "" else {
       //val attributes = node.attributes
-      s"<${node.label}>${node.text.trim}</${node.label}>" //TODO
+      s"<${node.label}></${node.label}>" //TODO
       //node.toString
     }
   }
@@ -70,10 +82,18 @@ object Html {
 }
 case class HtmlComponent(component: Component, template: HtmlNode, script: String)
 
+sealed abstract class HtmlInner
+case class HtmlInnerText(text: String) extends HtmlInner
+case class HtmlInnerNodes(value: Seq[Html]) extends HtmlInner
+
 sealed abstract class Html
-case class HtmlNode(node: Node, children: Seq[Html]) extends Html
+sealed abstract class HtmlWithInner extends Html {
+  def node: Node
+  def inner: HtmlInner
+}
+case class HtmlNode(node: Node, inner: HtmlInner) extends HtmlWithInner
 case class HtmlTranscludeTargetNode(node: Node) extends Html
-case class HtmlTranscludeArgNode(node: Node, children: Seq[Html]) extends Html
+case class HtmlTranscludeArgNode(node: Node, inner: HtmlInner) extends HtmlWithInner
 case class HtmlComponentNode(node: Node, children: Seq[HtmlTranscludeArgNode], component: Component) extends Html
 
 
