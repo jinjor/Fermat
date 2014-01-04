@@ -31,11 +31,18 @@ object Component {
           }
         }).map(xml => TranscludeArg(xml))
         
-        val template = (node \ "template")(0)
-        val script = (node \ "script").headOption
-        Right(Component(node, requires, transcludeArgs, Template(template), Script(script)))
+        val templates = (node \ "template")
+        val templateOpt = if(templates.isEmpty) None else Some(templates(0))
+        val viewImpl = templateOpt match {
+          case Some(template) => DefaultViewImpl(Template(template), (node \ "script").headOption.map(Script.apply))
+          case None => NonLimitViewImpl(Script((node \ "script").head))
+        }
+        Right(Component(node, requires, transcludeArgs, viewImpl))
       }
-      case Left(ex) => Left(FermatValidationException(ex))
+      case Left(ex) => {
+        ex.printStackTrace()
+        Left(FermatValidationException(ex))
+      }
     }
   }
 
@@ -54,14 +61,17 @@ object Component {
 
 }
 case class Component(node: Node, requires: Seq[Require], transcludeArgs:Seq[TranscludeArg],
-    template: Template, script: Script){
+    viewImpl: ViewImplementation){
   lazy val transcludeArgsAsMap = transcludeArgs.map(ta => (ta.node.attribute("name").get.toString -> ta)).toMap
 }
+abstract sealed class ViewImplementation
+case class DefaultViewImpl(template: Template, script: Option[Script]) extends ViewImplementation
+case class NonLimitViewImpl(script: Script) extends ViewImplementation
 
 abstract sealed class FermatNode
 case class Require(node: Node) extends FermatNode
 case class Template(node: Node) extends FermatNode
-case class Script(node: Option[Node]) extends FermatNode
+case class Script(node: Node) extends FermatNode
 case class TranscludeArg(node: Node) extends FermatNode
 
 

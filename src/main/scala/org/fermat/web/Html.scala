@@ -2,15 +2,29 @@ package org.fermat.web
 
 import scala.xml.Node
 import org.fermat.Component
+import org.fermat.DefaultViewImpl
+import org.fermat.Template
+import org.fermat.NonLimitViewImpl
+import org.fermat.Script
 
 object Html {
   def apply(component: Component, getComponentByTagLabel: String => Option[Component]): HtmlComponent = {
-    val template = HtmlNode(component.template.node, HtmlInnerNodes(component.template.node.child.map { child =>
-      apply(child, getComponentByTagLabel)
-    }))
-    val script = component.script.node.map(_.text).getOrElse("")
-    HtmlComponent(component, template, script)
+    component.viewImpl match {
+      case DefaultViewImpl(Template(templateNode), optScript) => {
+        val template = HtmlNode(templateNode, HtmlInnerNodes(templateNode.child.map { child =>
+          apply(child, getComponentByTagLabel)
+        }))
+        val script = optScript.map(_.node.text).getOrElse("")
+        HtmlComponent(component, HtmlDefaultViewImpl(template, script))
+      }
+      case NonLimitViewImpl(Script(node)) => {
+        val script = node.text
+        HtmlComponent(component, HtmlNonLimitViewImpl(script))
+      }
+    }
   }
+  
+  
   def apply(node: Node, getComponentByName: String => Option[Component]): Html = {
     getComponentByName(node.label) match {
       case Some(component) => {
@@ -26,10 +40,10 @@ object Html {
           val children = node.child.map { child =>
             apply(child, getComponentByName)
           }
-          if(node.toString.trim.isEmpty){
-            
-          }else{
-            
+          if (node.toString.trim.isEmpty) {
+
+          } else {
+
           }
           val inner = (children match {
             case List(HtmlNode(node, _)) if node.isAtom => Some(node.text)
@@ -53,7 +67,7 @@ object Html {
     }
   }
 
-  def toHtmlString(htmlNode: HtmlNode): String = {//TODO
+  def toHtmlString(htmlNode: HtmlNode): String = { //TODO
     val node = htmlNode.node
     if (node.isAtom) "" else {
       //val attributes = node.attributes
@@ -80,7 +94,11 @@ object Html {
   def classNameOf(component: Component): String = component.node.attribute("name").get.toString.capitalize
 
 }
-case class HtmlComponent(component: Component, template: HtmlNode, script: String)
+case class HtmlComponent(component: Component, viewImpl: HtmlViewImpl)
+
+sealed abstract class HtmlViewImpl
+case class HtmlDefaultViewImpl(template: HtmlNode, script: String) extends HtmlViewImpl
+case class HtmlNonLimitViewImpl(script: String) extends HtmlViewImpl
 
 sealed abstract class HtmlInner
 case class HtmlInnerText(text: String) extends HtmlInner

@@ -1,6 +1,7 @@
 package org.fermat.web
 
 import org.fermat.Event
+import org.fermat.DefaultViewImpl
 
 object JavaScript {
 
@@ -66,7 +67,7 @@ object JavaScript {
   }
 
   private def toTranscludeArgProf(html: HtmlTranscludeArgNode): TranscludeArgProf = {
-//    println("aaa:" + html)
+    //    println("aaa:" + html)
     val s = Html.toHtmlString(html)
     val elementExpression = s"""$$('$s')"""
     val innerData = toInnerData(html)
@@ -99,7 +100,7 @@ object JavaScript {
     }
     case html: HtmlComponentNode => { //
       val childrenProf = html.children.map(toTranscludeArgProf)
-      
+
       val keyValues = for {
         child <- childrenProf
         expr = expression(child)
@@ -152,7 +153,7 @@ object JavaScript {
       }
       case prof: TranscludeArgProf => {
         val s = s"""${prof.elementVarName}${innerDataAppend(prof)}"""
-//        println("1:" + s)
+        //        println("1:" + s)
         s
       }
       case prof: TranscludeTargetProf => {
@@ -237,23 +238,32 @@ object JavaScript {
   }
 
   private def clazz(htmlComponent: HtmlComponent): String = {
-    val div = HtmlNode(<div/>, htmlComponent.template.inner)
-    val prof = elementProf(div).get
-    val expr = expression(prof)
-    //println(expr)
-    val elementDeclaration = elementDeclarations(prof).mkString("\n")
-    val renderScriptStr = renderScripts(prof).mkString("\n")
-    val userScript = htmlComponent.script
-    s"""
-	Backbone.View.extend(_.extend({
-	  initialize: function(scope){
-    	var self = this;
-        ${userScript}
+    
+    val userScript = htmlComponent.viewImpl match {
+      case HtmlDefaultViewImpl(template, script) => {
+        val div = HtmlNode(<div/>, template.inner)
+        val prof = elementProf(div).get
+        val expr = expression(prof)
+        //println(expr)
+        val elementDeclaration = elementDeclarations(prof).mkString("\n")
+        val renderScriptStr = renderScripts(prof).mkString("\n")
+        s"""
+        ${script}
     	${elementDeclaration}
     	this.$$el.html($$($expr));
     	self.render = function(){
     	    ${renderScriptStr}
     	};
+        """
+      }
+      case HtmlNonLimitViewImpl(script) => script
+    }
+
+    s"""
+	Backbone.View.extend(_.extend({
+	  initialize: function(scope){
+    	var self = this;
+        ${userScript}
 	    self.render();
 	  }
 	}, Backbone.Events))"""

@@ -20,7 +20,7 @@
 						<xsd:attribute name="name" type="nestring" use="required" />
 					</xsd:complexType>
 				</xsd:element>
-				<xsd:element name="template" />
+				<xsd:element name="template" minOccurs="0" />
 				<xsd:element name="script" type="xsd:string" />
 			</xsd:sequence>
 			<xsd:attribute name="name" type="nestring" use="required" />
