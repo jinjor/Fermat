@@ -15,7 +15,7 @@ object Dependency {
   }
   
   
-  def makeNodesForTsort(top: Component, cache: Map[String, Component], getComponent: String => Component,
+  private def makeNodesForTsort(top: Component, cache: Map[String, Component], getComponent: String => Component,
     tNodeList: List[TNode[Component]]): (Map[String, Component], List[TNode[Component]]) = {
     val (newCache, reqComponents) = top.requires.foldLeft((cache, List[Component]())) {
       case ((memo, list), req) =>

@@ -1,12 +1,12 @@
 package org.fermat.util
 
 object Tsort {
-  case class NodeNotFound[A](parent: A) extends Exception
+  case class NodeNotFound[A](private val parent: A) extends Exception
   case class Node[A](value : A, parents: List[A])
   
-  def notVisited[A](visited: Set[A], name:A):Boolean = !visited.contains(name)
+  private def notVisited[A](visited: Set[A], name:A):Boolean = !visited.contains(name)
 
-  def visit[A](node: Node[A], visited: Set[A], l: List[A], getNode:A => Option[Node[A]]): (Set[A], List[A]) = {
+  private def visit[A](node: Node[A], visited: Set[A], l: List[A], getNode:A => Option[Node[A]]): (Set[A], List[A]) = {
     val Node(value, parents) = node
     if(notVisited(visited, value)){
       val visited_ = visited + value

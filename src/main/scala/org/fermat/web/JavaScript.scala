@@ -4,27 +4,27 @@ import org.fermat.Event
 
 object JavaScript {
 
-  sealed abstract class InnerData
-  case class InnerElements(children: Seq[ElementProf]) extends InnerData
-  case class InnerStaticText(text: String) extends InnerData
-  case class InnerDynamicText(modelName: String) extends InnerData
-  case class InnerInputText(modelName: String) extends InnerData
-  case object InnerDataCapsuled extends InnerData
+  private sealed abstract class InnerData
+  private case class InnerElements(children: Seq[ElementProf]) extends InnerData
+  private case class InnerStaticText(text: String) extends InnerData
+  private case class InnerDynamicText(modelName: String) extends InnerData
+  private case class InnerInputText(modelName: String) extends InnerData
+  private case object InnerDataCapsuled extends InnerData
 
-  abstract sealed class ElementProfWithInnerData extends ElementProf {
+  private abstract sealed class ElementProfWithInnerData extends ElementProf {
     def innerData: InnerData
   }
-  abstract sealed class ElementProf {
+  private abstract sealed class ElementProf {
     def elementVarName: String
   }
-  case class GeneralProf(elementVarName: String, elementExpression: String,
+  private case class GeneralProf(elementVarName: String, elementExpression: String,
     innerData: InnerData, events: Iterable[Event]) extends ElementProfWithInnerData
-  case class TranscludeArgProf(elementVarName: String, elementExpression: String,
+  private case class TranscludeArgProf(elementVarName: String, elementExpression: String,
     innerData: InnerData, name: String) extends ElementProfWithInnerData
-  case class TranscludeTargetProf(elementVarName: String, elementExpression: String,
+  private case class TranscludeTargetProf(elementVarName: String, elementExpression: String,
     name: String) extends ElementProf
 
-  case class ComponentProf(componentVarName: String, elementVarName: String,
+  private case class ComponentProf(componentVarName: String, elementVarName: String,
     componentExpression: String, children: Seq[TranscludeArgProf]) extends ElementProf
 
   lazy val preLoadTagsAsString: String = { //TODO
@@ -34,18 +34,18 @@ object JavaScript {
 	  <script src="./lib/Bacon.min.js"></script>"""
   }
 
-  var id = 0
-  def crateNewVarName(): String = {
+  private var id = 0
+  private def crateNewVarName(): String = {
     id = id + 1
     "var" + id;
   }
 
-  def kindOfInput(html: HtmlWithInner): Boolean = {
+  private def kindOfInput(html: HtmlWithInner): Boolean = {
     (html.node.label == "input" && html.node.attribute("type").get.toString.trim == "text") ||
       (html.node.label == "textarea")
   }
 
-  def toInnerData(html: HtmlWithInner): InnerData = html.inner match {
+  private def toInnerData(html: HtmlWithInner): InnerData = html.inner match {
     case HtmlInnerText(text) => InnerStaticText(html.node.text)
     case HtmlInnerNodes(children) => {
       if (children.isEmpty) {
@@ -65,7 +65,7 @@ object JavaScript {
     }
   }
 
-  def toTranscludeArgProf(html: HtmlTranscludeArgNode): TranscludeArgProf = {
+  private def toTranscludeArgProf(html: HtmlTranscludeArgNode): TranscludeArgProf = {
 //    println("aaa:" + html)
     val s = Html.toHtmlString(html)
     val elementExpression = s"""$$('$s')"""
@@ -74,7 +74,7 @@ object JavaScript {
     TranscludeArgProf(elementVarName, elementExpression, innerData, html.node.label)
   }
 
-  def elementProf(html: Html): Option[ElementProf] = html match {
+  private def elementProf(html: Html): Option[ElementProf] = html match {
     case html: HtmlNode => {
       val s = Html.toHtmlString(html)
       if (s.isEmpty) {
@@ -124,7 +124,7 @@ object JavaScript {
     }
   }
 
-  def innerDataAppend(prof: ElementProfWithInnerData): String = {
+  private def innerDataAppend(prof: ElementProfWithInnerData): String = {
     (prof.innerData match {
       case InnerElements(children) => (children.map { child =>
         val s = JavaScript.expression(child)
@@ -136,7 +136,7 @@ object JavaScript {
     })
   }
 
-  def expression(prof: ElementProf): String = {
+  private def expression(prof: ElementProf): String = {
     prof match {
       case prof: GeneralProf => {
         val s = s"""$$(${prof.elementVarName})${innerDataAppend(prof)}"""
@@ -210,7 +210,7 @@ object JavaScript {
     }
   }
 
-  def renderScriptsForInner(elementVarName: String, innerData: InnerData): Seq[String] = {
+  private def renderScriptsForInner(elementVarName: String, innerData: InnerData): Seq[String] = {
     innerData match {
       case InnerDynamicText(modelVarName) =>
         List(s"${elementVarName}.text(scope.${modelVarName})")
@@ -222,7 +222,7 @@ object JavaScript {
     }
   }
 
-  def renderScripts(ep: ElementProf): Seq[String] = {
+  private def renderScripts(ep: ElementProf): Seq[String] = {
     ep match {
       case prof: GeneralProf => renderScriptsForInner(prof.elementVarName, prof.innerData)
       case prof: TranscludeArgProf => renderScriptsForInner(prof.elementVarName, prof.innerData)
@@ -232,11 +232,11 @@ object JavaScript {
       case prof: ComponentProf => List(s"${prof.componentVarName}.render()")
     }
   }
-  def renderScriptsForTranscludeArg(transcludeArg: TranscludeArgProf): (String, Seq[String]) = {
+  private def renderScriptsForTranscludeArg(transcludeArg: TranscludeArgProf): (String, Seq[String]) = {
     (transcludeArg.name -> (elementDeclarations(transcludeArg) ++ renderScripts(transcludeArg)))
   }
 
-  def clazz(htmlComponent: HtmlComponent): String = {
+  private def clazz(htmlComponent: HtmlComponent): String = {
     val div = HtmlNode(<div/>, htmlComponent.template.inner)
     val prof = elementProf(div).get
     val expr = expression(prof)

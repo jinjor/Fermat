@@ -17,7 +17,7 @@ object Main {
     println("end!")
   }
 
-  def exec(jarPath:String, root: String, top: String) {
+  private def exec(jarPath:String, root: String, top: String) {
 
     val fullPathOf = (s: String) => root + "/" + s
     val fullPathOfTop = fullPathOf(top)
