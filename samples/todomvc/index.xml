@@ -1,27 +1,31 @@
 <component name="index">
-<!-- 
 	<require src="text.xml"/>
 	<require src="if.xml"/>
 	<require src="for.xml"/>
-	 -->
 	<template>
 		<link rel="stylesheet" href="base.css"/>
 		<section id="todoapp">
 			<header id="header">
 				<h1>todos</h1>
-				<input id="new-todo" placeholder="What needs to be done?" autofocus=""/>
+				<input id="new-todo" placeholder="What needs to be done?" autofocus="" model="newTodo"/>
 			</header>
 			<section id="main">
 				<input id="toggle-all" type="checkbox"/>
 				<label for="toggle-all">Mark all as complete</label>
-				<ul id="todo-list"><li>
+				<ul id="todo-list">
+				<for items="$todos" as="todo">
+				<each>
+				<li>
 					<div class="view">
 						<input class="toggle" type="checkbox"/>
-						<label>sdfsfd</label>
+						<label data="$todo.name"></label>
 						<button class="destroy"></button>
 					</div>
-					<input class="edit" value="sdfsfd"/>
-				</li></ul>
+					<input class="edit" data="$todo.name"/>
+				</li>
+				</each>
+				</for>
+				</ul>
 			</section>
 			<footer id="footer">
 			<span id="todo-count"><strong>1</strong> item left</span>
@@ -72,5 +76,33 @@
 		 -->
 	</template>
 	<script>
+		var loadTodos = function(){
+			var todo1 = new Todo();
+			todo1.name = "hoge";
+			todo1.create();
+			var todo2 = new Todo();
+			todo2.name = "fuga";
+			todo2.create();
+			return [todo1, todo2];
+		};
+	
+		var id = 5;
+		var createId = function(){
+			return id++;
+		};
+		var Todo = function(){
+			this.name = "";
+			this.done = false;
+		};
+		Todo.prototype.create = function(){
+			this.id = createId();
+		};
+		var editingTodo = null;
+		
+		scope.newTodo = {}
+		scope.todos = loadTodos();
+		editingTodo = scope.todos[1];
+	
+	
 	</script>
 </component>

@@ -29,7 +29,8 @@ object JavaScript {
     componentExpression: String, children: Seq[TranscludeArgProf]) extends ElementProf
 
   lazy val preLoadTagsAsString: String = { //TODO
-    """<script src="./lib/jquery-2.0.3.min.js"></script>
+    """<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="./lib/jquery-2.0.3.min.js"></script>
     	<script src="./lib/underscore-min.js"></script>
     	<script src="./lib/backbone-min.js"></script>
 	  <script src="./lib/Bacon.min.js"></script>"""
@@ -42,7 +43,7 @@ object JavaScript {
   }
 
   private def kindOfInput(html: HtmlWithInner): Boolean = {
-    (html.node.label == "input" && html.node.attribute("type").get.toString.trim == "text") ||
+    (html.node.label == "input" && html.node.attribute("type").map(_.toString.trim == "text").getOrElse(false)) ||
       (html.node.label == "textarea")
   }
 

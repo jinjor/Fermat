@@ -1,0 +1,11 @@
+<component name="text">
+	<arg name="model"/>
+	<template>
+		<input type="text" onKeyup="change" data="model"></input>
+	</template>
+	<script>
+		var change = function(e){
+			scope.model = $(e).val();
+		};
+	</script>
+</component>

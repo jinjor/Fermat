@@ -1,0 +1,14 @@
+<component name="if">
+	<arg name="condition"/>
+	<arg name="then" transclude="true"/>
+	<arg name="else" transclude="true"/>
+	<script>
+		self.render = function(){
+			var a = scope[scope.condition ? "then" : "else"](scope);
+			self.$el.html(a);
+			//self.$el.first().replaceWith(a);
+			//self.$el.each(function(){$(this).remove()});
+			//self.$el = a;
+    	};
+	 </script>
+</component>

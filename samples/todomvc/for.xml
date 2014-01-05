@@ -1,0 +1,20 @@
+<component name="for">
+	<arg name="items"/>
+	<arg name="as"/>
+	<arg name="index"/>
+	<arg name="each" transclude="true"/>
+	<script>
+		self.render = function(){
+			self.$el.empty();
+			scope.items.forEach(function(item, i){
+				var local = {};
+				local[scope.as] = item;
+				if(scope.index){
+					local[scope.index] = i;
+				}
+				var newScope = _.extend(local, scope);
+				self.$el.append(scope.each(newScope));
+			});
+    	};
+	 </script>
+</component>
