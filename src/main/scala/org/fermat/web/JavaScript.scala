@@ -107,7 +107,7 @@ object JavaScript {
         (name, declarations) = renderScriptsForTranscludeArg(child)
       } yield s"""'${name}': function(scope){//child scope including parents'
     	    ${declarations.mkString("\n")}
-    	    return $expr;
+    	    return ${expr}.children();
           }"""
 
       val args = (html.node.attributes.map { attr =>
