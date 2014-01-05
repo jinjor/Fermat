@@ -1,0 +1,76 @@
+<component name="index">
+<!-- 
+	<require src="text.xml"/>
+	<require src="if.xml"/>
+	<require src="for.xml"/>
+	 -->
+	<template>
+		<link rel="stylesheet" href="base.css"/>
+		<section id="todoapp">
+			<header id="header">
+				<h1>todos</h1>
+				<input id="new-todo" placeholder="What needs to be done?" autofocus=""/>
+			</header>
+			<section id="main">
+				<input id="toggle-all" type="checkbox"/>
+				<label for="toggle-all">Mark all as complete</label>
+				<ul id="todo-list"><li>
+					<div class="view">
+						<input class="toggle" type="checkbox"/>
+						<label>sdfsfd</label>
+						<button class="destroy"></button>
+					</div>
+					<input class="edit" value="sdfsfd"/>
+				</li></ul>
+			</section>
+			<footer id="footer">
+			<span id="todo-count"><strong>1</strong> item left</span>
+			<ul id="filters">
+				<li>
+					<a class="selected" href="#/">All</a>
+				</li>
+				<li>
+					<a href="#/active">Active</a>
+				</li>
+				<li>
+					<a href="#/completed">Completed</a>
+				</li>
+			</ul>
+		</footer>
+		</section>
+		<footer id="info">
+			<p>Double-click to edit a todo</p>
+			<p>Written by <a href="https://github.com/jinjor">Yosuke Torii</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<!-- 
+		<script src="//www.google-analytics.com/ga.js"></script><script type="text/template" id="item-template">
+			<div class="view">
+				<input class="toggle" type="checkbox" <%= completed ? 'checked' : '' %>>
+				<label><%- title %></label>
+				<button class="destroy"></button>
+			</div>
+			<input class="edit" value="<%- title %>">
+		</script>
+		<script type="text/template" id="stats-template">
+			<span id="todo-count"><strong><%= remaining %></strong> <%= remaining === 1 ? 'item' : 'items' %> left</span>
+			<ul id="filters">
+				<li>
+					<a class="selected" href="#/">All</a>
+				</li>
+				<li>
+					<a href="#/active">Active</a>
+				</li>
+				<li>
+					<a href="#/completed">Completed</a>
+				</li>
+			</ul>
+			<% if (completed) { %>
+			<button id="clear-completed">Clear completed (<%= completed %>)</button>
+			<% } %>
+		</script>
+		 -->
+	</template>
+	<script>
+	</script>
+</component>

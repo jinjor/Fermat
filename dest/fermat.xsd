@@ -18,6 +18,7 @@
 				<xsd:element name="arg" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
 						<xsd:attribute name="name" type="nestring" use="required" />
+						<xsd:attribute name="transclude" type="xsd:boolean" use="optional" />
 					</xsd:complexType>
 				</xsd:element>
 				<xsd:element name="template" minOccurs="0" />

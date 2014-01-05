@@ -70,25 +70,28 @@ object Html {
   def toHtmlString(htmlNode: HtmlNode): String = { //TODO
     val node = htmlNode.node
     if (node.isAtom) "" else {
-      //val attributes = node.attributes
-      s"<${node.label}></${node.label}>" //TODO
-      //node.toString
+      val attributes = (node.attributes.map { attr =>
+        s"""${attr.key}="${attr.value}""""
+      }).mkString(" ")
+      s"<${node.label} ${attributes}></${node.label}>"
     }
   }
   def toHtmlString(htmlNode: HtmlTranscludeTargetNode): String = {
     val node = htmlNode.node
     if (node.isAtom) "" else {
-      //val attributes = node.attributes
-      s"<${node.label}></${node.label}>" //TODO
-      //node.toString
+      val attributes = (node.attributes.map { attr =>
+        s"""${attr.key}="${attr.value}""""
+      }).mkString(" ")
+      s"<${node.label} ${attributes}></${node.label}>"
     }
   }
   def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
     val node = htmlNode.node
     if (node.isAtom) "" else {
-      //val attributes = node.attributes
-      s"<${node.label}></${node.label}>" //TODO
-      //node.toString
+      val attributes = (node.attributes.map { attr =>
+        s"""${attr.key}="${attr.value}""""
+      }).mkString(" ")
+      s"<${node.label} ${attributes}></${node.label}>"
     }
   }
   def classNameOf(component: Component): String = component.node.attribute("name").get.toString.capitalize

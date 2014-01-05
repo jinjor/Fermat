@@ -1,0 +1,115 @@
+
+      <html>
+      	<head>
+      		<script src="./lib/jquery-2.0.3.min.js"></script>
+    	<script src="./lib/underscore-min.js"></script>
+    	<script src="./lib/backbone-min.js"></script>
+	  <script src="./lib/Bacon.min.js"></script>
+    		<script>
+  	
+  	$(function(){
+		var Index = 
+	Backbone.View.extend(_.extend({
+	  initialize: function(scope){
+    	var self = this;
+        
+        
+	
+    	var var32 = $('<div ></div>');
+var var1 = $('<link href="base.css" rel="stylesheet"></link>');
+var var25 = $('<section id="todoapp"></section>');
+var var4 = $('<header id="header"></header>');
+var var2 = $('<h1 ></h1>');
+var var3 = $('<input autofocus="" placeholder="What needs to be done?" id="new-todo"></input>');
+var var14 = $('<section id="main"></section>');
+var var5 = $('<input type="checkbox" id="toggle-all"></input>');
+var var6 = $('<label for="toggle-all"></label>');
+var var13 = $('<ul id="todo-list"></ul>');
+var var12 = $('<li ></li>');
+var var10 = $('<div class="view"></div>');
+var var7 = $('<input type="checkbox" class="toggle"></input>');
+var var8 = $('<label ></label>');
+var var9 = $('<button class="destroy"></button>');
+var var11 = $('<input value="sdfsfd" class="edit"></input>');
+var var24 = $('<footer id="footer"></footer>');
+var var16 = $('<span id="todo-count"></span>');
+var var15 = $('<strong ></strong>');
+var var23 = $('<ul id="filters"></ul>');
+var var18 = $('<li ></li>');
+var var17 = $('<a href="#/" class="selected"></a>');
+var var20 = $('<li ></li>');
+var var19 = $('<a href="#/active"></a>');
+var var22 = $('<li ></li>');
+var var21 = $('<a href="#/completed"></a>');
+var var31 = $('<footer id="info"></footer>');
+var var26 = $('<p ></p>');
+var var28 = $('<p ></p>');
+var var27 = $('<a href="https://github.com/jinjor"></a>');
+var var30 = $('<p ></p>');
+var var29 = $('<a href="http://todomvc.com"></a>');
+    	this.$el.html($($(var32)
+.append($(var1)
+.text(""))
+.append($(var25)
+.append($(var4)
+.append($(var2)
+.text("todos"))
+.append($(var3)
+.text("")))
+.append($(var14)
+.append($(var5)
+.text(""))
+.append($(var6)
+.text("Mark all as complete"))
+.append($(var13)
+.append($(var12)
+.append($(var10)
+.append($(var7)
+.text(""))
+.append($(var8)
+.text("sdfsfd"))
+.append($(var9)
+.text("")))
+.append($(var11)
+.text("")))))
+.append($(var24)
+.append($(var16)
+.append($(var15)
+.text("1")))
+.append($(var23)
+.append($(var18)
+.append($(var17)
+.text("All")))
+.append($(var20)
+.append($(var19)
+.text("Active")))
+.append($(var22)
+.append($(var21)
+.text("Completed"))))))
+.append($(var31)
+.append($(var26)
+.text("Double-click to edit a todo"))
+.append($(var28)
+.append($(var27)
+.text("Yosuke Torii")))
+.append($(var30)
+.append($(var29)
+.text("TodoMVC"))))));
+    	self.render = function(){
+    	    
+    	};
+        
+	    self.render();
+	  }
+	}, Backbone.Events));
+  		var top = new Index({});
+  		top.on("update", function(){
+  			top.render();
+  		});
+  	    $('body').html(top.$el);
+  	});
+  </script>
+        </head>
+      	<body>
+        </body>
+      </html>
