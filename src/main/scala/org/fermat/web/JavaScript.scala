@@ -52,9 +52,15 @@ object JavaScript {
       if (children.isEmpty) {
         html.node.attribute("data") match {
           case Some(attr) => if (kindOfInput(html)) {
+            println(html.node.label);
             InnerInputText(attr.toString)
           } else {
-            InnerDynamicText(attr.toString)
+            val value = attr.toString
+            if(value.startsWith("$")){
+              InnerDynamicText(attr.toString.tail)
+            }else{
+              InnerStaticText(attr.toString)
+            }
           }
           case None => InnerStaticText(html.node.text)
         }
@@ -70,6 +76,7 @@ object JavaScript {
     //    println("aaa:" + html)
     val s = Html.toHtmlString(html)
     val elementExpression = s"""$$('$s')"""
+    
     val innerData = toInnerData(html)
     val elementVarName = crateNewVarName()
     TranscludeArgProf(elementVarName, elementExpression, innerData, html.node.label)
@@ -107,15 +114,23 @@ object JavaScript {
         (name, declarations) = renderScriptsForTranscludeArg(child)
       } yield s"""'${name}': function(scope){//child scope including parents'
     	    ${declarations.mkString("\n")}
-    	    return ${expr}.children();
+    	    var a = ${expr};
+    	    console.log(scope);
+    	    console.log(a.html());
+    	    return a.children();
           }"""
 
       val args = (html.node.attributes.map { attr =>
-        s"""get ${attr.key}(){return scope.${attr.value}; },//TODO
-    	  set ${attr.key}(v){ scope.${attr.value} = v; }"""
+        if(attr.value.toString.startsWith("$")){
+          val value = attr.value.toString.tail
+          s"""get ${attr.key}(){return scope.${value}; },
+    	  set ${attr.key}(v){ scope.${value} = v; }"""
+        }else{
+          s"""${attr.key}: '${attr.value}'"""
+        }
       })
       val arg = s"""{
-      	${(args ++ keyValues).mkString(",")}
+      	${(args ++ keyValues).mkString(",\n")}
       }""" //TODO name
       val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
       val innerData: InnerData = InnerDataCapsuled
