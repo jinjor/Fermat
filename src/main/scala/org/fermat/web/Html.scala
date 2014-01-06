@@ -6,92 +6,114 @@ import org.fermat.DefaultViewImpl
 import org.fermat.Template
 import org.fermat.NonLimitViewImpl
 import org.fermat.Script
+import org.fermat.FermatNode
+import org.fermat.FermatGeneralNodeLike
+import org.fermat.FermatComponentNode
+import org.fermat.FermatGeneralNode
+import org.fermat.FermatTextNode
+import org.fermat.FermatGeneralNodeLike
+import org.fermat.FermatText
+import org.fermat.FermatGeneralAttribute
+import org.fermat.FermatEventAttribute
 
 object Html {
-  def apply(component: Component, getComponentByTagLabel: String => Option[Component]): HtmlComponent = {
+  def apply(component: Component, getComponent: String => Component): HtmlComponent = {
     component.viewImpl match {
-      case DefaultViewImpl(Template(templateNode), optScript) => {
-        val template = HtmlNode(templateNode, HtmlInnerNodes(templateNode.child.map { child =>
-          apply(child, getComponentByTagLabel)
-        }))
-        val script = optScript.map(_.node.text).getOrElse("")
-        HtmlComponent(component, HtmlDefaultViewImpl(template, script))
+      case DefaultViewImpl(Template(nodes), optScript) => {
+        val inner = HtmlInnerNodes(nodes.map { child =>
+          apply(child, getComponent)
+        })
+        val script = optScript.map(_.value).getOrElse("")
+        HtmlComponent(component, HtmlDefaultViewImpl(inner, script))
       }
-      case NonLimitViewImpl(Script(node)) => {
-        val script = node.text
+      case NonLimitViewImpl(Script(script)) => {
         HtmlComponent(component, HtmlNonLimitViewImpl(script))
       }
     }
   }
-  
-  
-  def apply(node: Node, getComponentByName: String => Option[Component]): Html = {
-    getComponentByName(node.label) match {
-      case Some(component) => {
-        val children = node.child.map { child =>
+  def apply(node: FermatGeneralNodeLike, getComponentByName: String => Component): Html = {
+
+    node match {
+      case node: FermatComponentNode => {
+        val component = getComponentByName(node.label)
+        val children = node.children.map { child =>
           toTranscludeArgNode(child, component, getComponentByName)
         }.flatten
         HtmlComponentNode(node, children, component)
       }
-      case None => {
-        if (node.label == "transclude") {
-          HtmlTranscludeTargetNode(node)
-        } else {
-          val children = node.child.map { child =>
-            apply(child, getComponentByName)
+      case node: FermatGeneralNode => {
+        //        if (node.label == "transclude") {
+        //          HtmlTranscludeTargetNode(node)
+        //        } else {
+        val inner = node.children match {
+          case Seq(FermatTextNode(text)) => {
+            HtmlInnerText(text)
           }
-          if (node.toString.trim.isEmpty) {
-
-          } else {
-
+          case children => {
+            HtmlInnerNodes(children.map { c =>
+              c match {
+                case c: FermatGeneralNodeLike => {
+                  apply(c, getComponentByName)
+                }
+                case _ => {
+                  throw new IllegalArgumentException("")
+                }
+              }
+            })
           }
-          val inner = (children match {
-            case List(HtmlNode(node, _)) if node.isAtom => Some(node.text)
-            case _ => None
-          }) match {
-            case Some(text) => HtmlInnerText(text)
-            case None => HtmlInnerNodes(children)
-          }
-          HtmlNode(node, inner)
         }
+        HtmlNode(node, inner)
       }
     }
+
   }
 
-  def toTranscludeArgNode(node: Node, component: Component, getComponentByName: String => Option[Component]): Option[HtmlTranscludeArgNode] = {
+  def toTranscludeArgNode(node: FermatGeneralNodeLike, component: Component, getComponentByName: String => Component): Option[HtmlTranscludeArgNode] = {
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
-        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.child.map { child =>
+        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.children.map { child =>
           apply(child, getComponentByName)
         }))
     }
   }
 
   def toHtmlString(htmlNode: HtmlNode): String = { //TODO
-    val node = htmlNode.node
-    if (node.isAtom) "" else {
-      val attributes = (node.attributes.map { attr =>
-        s"""${attr.key}="${attr.value}""""
-      }).mkString(" ")
-      s"<${node.label} ${attributes}></${node.label}>"
+    htmlNode.node match {
+      case n: FermatGeneralNodeLike => {
+        val attributes = (n.attributes.flatMap { attr =>
+          attr match {
+            case FermatGeneralAttribute(key, value) => Some(s"""${key}="${value}"""")
+            case FermatEventAttribute(_) => None
+          }
+        }).mkString(" ")
+        s"<${n.label} ${attributes}></${n.label}>"
+      }
+      case _ => ""
     }
   }
-  def toHtmlString(htmlNode: HtmlTranscludeTargetNode): String = {
-    val node = htmlNode.node
-    if (node.isAtom) "" else {
-      val attributes = (node.attributes.map { attr =>
-        s"""${attr.key}="${attr.value}""""
-      }).mkString(" ")
-      s"<${node.label} ${attributes}></${node.label}>"
-    }
-  }
+  //    def toHtmlString(htmlNode: HtmlTranscludeTargetNode): String = {
+  //      htmlNode.node match {
+  //      case n: FermatGeneralNodeLike => {
+  //        val attributes = (n.attributes.map { attr =>
+  //          s"""${attr.key}="${attr.value}""""
+  //        }).mkString(" ")
+  //        s"<${n.label} ${attributes}></${n.label}>"
+  //      }
+  //      case _ => ""
+  //    }
+  //    }
   def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
-    val node = htmlNode.node
-    if (node.isAtom) "" else {
-      val attributes = (node.attributes.map { attr =>
-        s"""${attr.key}="${attr.value}""""
-      }).mkString(" ")
-      s"<${node.label} ${attributes}></${node.label}>"
+    htmlNode.node match {
+      case n: FermatGeneralNodeLike => {
+        val attributes = (n.attributes.flatMap { attr =>
+          attr match {
+            case FermatGeneralAttribute(key, value) => Some(s"""${key}="${value}"""")
+            case FermatEventAttribute(_) => None
+          }
+        }).mkString(" ")
+        s"<${n.label} ${attributes}></${n.label}>"
+      }
+      case _ => ""
     }
   }
   def classNameOf(component: Component): String = component.node.attribute("name").get.toString.capitalize
@@ -100,11 +122,11 @@ object Html {
 case class HtmlComponent(component: Component, viewImpl: HtmlViewImpl)
 
 sealed abstract class HtmlViewImpl
-case class HtmlDefaultViewImpl(template: HtmlNode, script: String) extends HtmlViewImpl
+case class HtmlDefaultViewImpl(template: HtmlInnerNodes, script: String) extends HtmlViewImpl
 case class HtmlNonLimitViewImpl(script: String) extends HtmlViewImpl
 
 sealed abstract class HtmlInner
-case class HtmlInnerText(text: String) extends HtmlInner
+case class HtmlInnerText(text: FermatText) extends HtmlInner
 case class HtmlInnerNodes(value: Seq[Html]) extends HtmlInner
 
 sealed abstract class Html
@@ -112,10 +134,10 @@ sealed abstract class HtmlWithInner extends Html {
   def node: Node
   def inner: HtmlInner
 }
-case class HtmlNode(node: Node, inner: HtmlInner) extends HtmlWithInner
-case class HtmlTranscludeTargetNode(node: Node) extends Html
-case class HtmlTranscludeArgNode(node: Node, inner: HtmlInner) extends HtmlWithInner
-case class HtmlComponentNode(node: Node, children: Seq[HtmlTranscludeArgNode], component: Component) extends Html
+case class HtmlNode(node: FermatNode, inner: HtmlInner) extends HtmlWithInner
+case class HtmlTranscludeTargetNode(name: String) extends Html
+case class HtmlTranscludeArgNode(node: FermatGeneralNodeLike, inner: HtmlInner) extends HtmlWithInner
+case class HtmlComponentNode(node: FermatComponentNode, children: Seq[HtmlTranscludeArgNode], component: Component) extends Html
 
 
 

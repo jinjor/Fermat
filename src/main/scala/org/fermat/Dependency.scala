@@ -5,7 +5,6 @@ import org.fermat.util.Tsort.{ Node => TNode }
 
 object Dependency {
   
-  
   def getAllComponent(jarPath: String, top: Component, fullPathOf: String => String): List[Component] = {
     val getComponent: String => Component = (src: String) => {
       Component(jarPath, fullPathOf(src)).right.get
@@ -14,12 +13,10 @@ object Dependency {
     Tsort.exec(all).reverse
   }
   
-  
   private def makeNodesForTsort(top: Component, cache: Map[String, Component], getComponent: String => Component,
     tNodeList: List[TNode[Component]]): (Map[String, Component], List[TNode[Component]]) = {
     val (newCache, reqComponents) = top.requires.foldLeft((cache, List[Component]())) {
-      case ((memo, list), req) =>
-        val src = req.node.attribute("src").get.toString
+      case ((memo, list), Require(src)) =>
         memo.get(src) match {
           case Some(component) => {
             (memo, component :: list)

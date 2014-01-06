@@ -12,7 +12,7 @@ object Web {
     val componentMap = Map[String, Component]()
     val (_, _htmlDeps) = (deps.foldLeft((componentMap, List[HtmlComponent]())){
       case ((componentMap, htmlDeps), component) =>
-        val html = Html(component, componentMap.get _)
+        val html = Html(component, (name:String) => componentMap.get(name).get)
         (componentMap + (component.node.attribute("name").get.toString -> component), html :: htmlDeps)
     })
     val htmlDeps = _htmlDeps.reverse
