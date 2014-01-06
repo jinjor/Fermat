@@ -15,6 +15,8 @@ import org.fermat.FermatGeneralNodeLike
 import org.fermat.FermatText
 import org.fermat.FermatGeneralAttribute
 import org.fermat.FermatEventAttribute
+import org.fermat.FermatDynamicText
+import org.fermat.FermatStaticText
 
 object Html {
   def apply(component: Component, getComponent: String => Component): HtmlComponent = {
@@ -49,13 +51,13 @@ object Html {
             HtmlInnerText(text)
           }
           case children => {
-            HtmlInnerNodes(children.map { c =>
+            HtmlInnerNodes(children.flatMap { c =>
               c match {
                 case c: FermatGeneralNodeLike => {
-                  apply(c, getComponentByName)
+                  Some(apply(c, getComponentByName))
                 }
                 case _ => {
-                  throw new IllegalArgumentException("")
+                  None
                 }
               }
             })
@@ -70,13 +72,13 @@ object Html {
   def toTranscludeArgNode(node: FermatGeneralNodeLike, component: Component, getComponentByName: String => Component): Option[HtmlTranscludeArgNode] = {
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
-        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.children.map { c =>
+        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.children.flatMap { c =>
           c match {
             case c: FermatGeneralNodeLike => {
-              apply(c, getComponentByName)
+              Some(apply(c, getComponentByName))
             }
             case _ => {
-              throw new IllegalArgumentException("")
+              None
             }
           }
         }))
@@ -88,36 +90,31 @@ object Html {
       case n: FermatGeneralNodeLike => {
         val attributes = (n.attributes.flatMap { attr =>
           attr match {
-            case FermatGeneralAttribute(key, value) => Some(s"""${key}="${value}"""")
+            case FermatGeneralAttribute(key, value) => value match {
+              case FermatStaticText(text) => Some(s"""${key}="${text}"""")
+              case _ => None
+            }
             case FermatEventAttribute(_) => None
           }
         }).mkString(" ")
-        s"<${n.label} ${attributes}></${n.label}>"
+        s"<${n.label} ${attributes}/>"
       }
       case _ => ""
     }
   }
-  //    def toHtmlString(htmlNode: HtmlTranscludeTargetNode): String = {
-  //      htmlNode.node match {
-  //      case n: FermatGeneralNodeLike => {
-  //        val attributes = (n.attributes.map { attr =>
-  //          s"""${attr.key}="${attr.value}""""
-  //        }).mkString(" ")
-  //        s"<${n.label} ${attributes}></${n.label}>"
-  //      }
-  //      case _ => ""
-  //    }
-  //    }
   def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
         val attributes = (n.attributes.flatMap { attr =>
           attr match {
-            case FermatGeneralAttribute(key, value) => Some(s"""${key}="${value}"""")
+            case FermatGeneralAttribute(key, value) => value match {
+              case FermatStaticText(text) => Some(s"""${key}="${text}"""")
+              case _ => None
+            }
             case FermatEventAttribute(_) => None
           }
         }).mkString(" ")
-        s"<${n.label} ${attributes}></${n.label}>"
+        s"<${n.label} ${attributes}/>"
       }
       case _ => ""
     }
@@ -128,7 +125,11 @@ object Html {
 case class HtmlComponent(component: Component, viewImpl: HtmlViewImpl)
 
 sealed abstract class HtmlViewImpl
-case class HtmlDefaultViewImpl(template: HtmlInnerNodes, script: String) extends HtmlViewImpl
+case class HtmlDefaultViewImpl(template: HtmlInnerNodes, script: String) extends HtmlViewImpl{
+//  template.value.foreach {
+//    v => println(v.getClass())
+//  }
+}
 case class HtmlNonLimitViewImpl(script: String) extends HtmlViewImpl
 
 sealed abstract class HtmlInner

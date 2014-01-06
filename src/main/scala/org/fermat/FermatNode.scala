@@ -25,8 +25,12 @@ object FermatNode {
         createNode(label, attributes, Seq())
       }
     } else {
-      val children = node.child.map { c =>
-        FermatNode(c, isComponent)
+      val children = node.child.flatMap { c =>
+        if(c.isInstanceOf[Text]){
+          None
+        }else{
+          Some(FermatNode(c, isComponent))
+        }
       }
       createNode(label, attributes, children)
     }
@@ -70,6 +74,10 @@ trait FermatGeneralNodeLike extends FermatNode {
   def label: String
   def attributes: Iterable[FermatAttribute]
   def children: Seq[FermatNode]
+  if(label == "template"){
+    throw new IllegalArgumentException()
+  }
+  
   private lazy val attributesAsMap = {
     val pairs = attributes.flatMap {
       _ match {

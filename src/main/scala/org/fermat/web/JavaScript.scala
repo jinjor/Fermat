@@ -82,7 +82,6 @@ object JavaScript {
   }
 
   private def toTranscludeArgProf(html: HtmlTranscludeArgNode): TranscludeArgProf = {
-    //    println("aaa:" + html)
     val s = Html.toHtmlString(html)
     val elementExpression = s"""$$('$s')"""
 
@@ -133,7 +132,7 @@ object JavaScript {
             case FermatDynamicText(modelName) =>
               s"""get ${key}(){return scope.${modelName}; },
     	          set ${key}(v){ scope.${modelName} = v; }"""
-            case FermatStaticText(text) => s"""${key}: '${value}'"""
+            case FermatStaticText(text) => s"""${key}: '${text}'"""
           }
           case _ => ""
         }
