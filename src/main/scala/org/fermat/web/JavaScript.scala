@@ -2,6 +2,13 @@ package org.fermat.web
 
 import org.fermat.Event
 import org.fermat.DefaultViewImpl
+import org.fermat.FermatGeneralAttribute
+import org.fermat.FermatDynamicText
+import org.fermat.FermatStaticText
+import org.fermat.FermatStaticText
+import org.fermat.FermatGeneralAttribute
+import org.fermat.FermatDynamicText
+import org.fermat.FermatGeneralNode
 
 object JavaScript {
 
@@ -48,22 +55,23 @@ object JavaScript {
   }
 
   private def toInnerData(html: HtmlWithInner): InnerData = html.inner match {
-    case HtmlInnerText(text) => InnerStaticText(html.node.text)
-    case HtmlInnerNodes(children) => {
+    case HtmlInnerText(text) => text match {
+      case FermatStaticText(text) => InnerStaticText(text)
+      case FermatDynamicText(modelName) => InnerDynamicText(modelName)
+    }
+    case HtmlInnerNodes(children) => {//TODO
       if (children.isEmpty) {
         html.node.attribute("data") match {
-          case Some(attr) => if (kindOfInput(html)) {
+          case Some(FermatGeneralAttribute(key, value)) => if (kindOfInput(html)) {
             println(html.node.label);
-            InnerInputText(attr.toString)
+            InnerInputText(value.asInstanceOf[FermatDynamicText].modelName)
           } else {
-            val value = attr.toString
-            if(value.startsWith("$")){
-              InnerDynamicText(attr.toString.tail)
-            }else{
-              InnerStaticText(attr.toString)
-            }
+            value match {
+		      case FermatStaticText(text) => InnerStaticText(text)
+		      case FermatDynamicText(modelName) => InnerDynamicText(modelName)
+		    }
           }
-          case None => InnerStaticText(html.node.text)
+          case None => InnerStaticText("")
         }
       } else {
         InnerElements(children.flatMap { child =>
@@ -77,7 +85,7 @@ object JavaScript {
     //    println("aaa:" + html)
     val s = Html.toHtmlString(html)
     val elementExpression = s"""$$('$s')"""
-    
+
     val innerData = toInnerData(html)
     val elementVarName = crateNewVarName()
     TranscludeArgProf(elementVarName, elementExpression, innerData, html.node.label)
@@ -91,7 +99,7 @@ object JavaScript {
       } else {
         val elementExpression = s"""$$('$s')"""
         val innerData = toInnerData(html)
-        val events = Event.eventsOf(html.node)
+        val events = html.node.events.map(_.event)
         val elementVarName = crateNewVarName()
         Some(GeneralProf(elementVarName, elementExpression, innerData, events))
       }
@@ -101,10 +109,8 @@ object JavaScript {
     }
     case html: HtmlTranscludeTargetNode => { //TODO refactor
       val elementVarName = crateNewVarName()
-      val s = Html.toHtmlString(html)
-      val elementExpression = s"""$$('$s')"""
-      val name = html.node.attribute("name").get.toString
-      Some(TranscludeTargetProf(elementVarName, elementExpression, name))
+      val elementExpression = s"""$$('<div/>')"""
+      Some(TranscludeTargetProf(elementVarName, elementExpression, html.name))
     }
     case html: HtmlComponentNode => { //
       val childrenProf = html.children.map(toTranscludeArgProf)
@@ -122,12 +128,14 @@ object JavaScript {
           }"""
 
       val args = (html.node.attributes.map { attr =>
-        if(attr.value.toString.startsWith("$")){
-          val value = attr.value.toString.tail
-          s"""get ${attr.key}(){return scope.${value}; },
-    	  set ${attr.key}(v){ scope.${value} = v; }"""
-        }else{
-          s"""${attr.key}: '${attr.value}'"""
+        attr match {
+          case FermatGeneralAttribute(key, value) => value match {
+            case FermatDynamicText(modelName) =>
+              s"""get ${key}(){return scope.${modelName}; },
+    	          set ${key}(v){ scope.${modelName} = v; }"""
+            case FermatStaticText(text) => s"""${key}: '${value}'"""
+          }
+          case _ => ""
         }
       })
       val arg = s"""{
@@ -254,10 +262,10 @@ object JavaScript {
   }
 
   private def clazz(htmlComponent: HtmlComponent): String = {
-    
+
     val userScript = htmlComponent.viewImpl match {
       case HtmlDefaultViewImpl(template, script) => {
-        val div = HtmlNode(<div/>, template.inner)
+        val div = HtmlNode(FermatGeneralNode("div", Iterable(), Seq()), template)
         val prof = elementProf(div).get
         val expr = expression(prof)
         //println(expr)

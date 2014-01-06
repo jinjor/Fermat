@@ -17,7 +17,7 @@ object FermatNode {
       }
       FermatComponentNode(label, attributes, children)
     } else FermatGeneralNode.apply _
-    
+
     if (node.isAtom) {
       if (node.isInstanceOf[Text]) {
         FermatTextNode(FermatText(node.toString))
@@ -31,24 +31,23 @@ object FermatNode {
       createNode(label, attributes, children)
     }
   }
-  
-   def attributesOf(node: Node): Iterable[FermatAttribute] = for {
+
+  def attributesOf(node: Node): Iterable[FermatAttribute] = for {
     attr: MetaData <- node.attributes
     key = attr.key
     value = attr.value.toString
   } yield {
-    if (key.startsWith("on")){
+    if (key.startsWith("on")) {
       val _eventName = key.drop("on".length)
       val eventName = _eventName.head.toLower + _eventName.tail
       FermatEventAttribute(Event(value, eventName))
-    }else{
+    } else {
       FermatGeneralAttribute(key, FermatText(value))
     }
   }
 }
 
-
-case class Event(methodName:String, name: String)
+case class Event(methodName: String, name: String)
 
 abstract sealed class FermatNode
 
@@ -70,16 +69,19 @@ case class FermatEventAttribute(event: Event) extends FermatAttribute
 trait FermatGeneralNodeLike extends FermatNode {
   def label: String
   def attributes: Iterable[FermatAttribute]
-  def children: Seq[FermatGeneralNodeLike]
-//  private lazy val attributesAsMap = {
-//    val pairs = attributes.map { a =>
-//      (a.key, a)
-//    }
-//    pairs.toMap
-//  }
-//  def attribute(attrName: String): Option[FermatAttribute] = {
-//    attributesAsMap.get(attrName)
-//  }
+  def children: Seq[FermatNode]
+  private lazy val attributesAsMap = {
+    val pairs = attributes.flatMap {
+      _ match {
+        case attr: FermatGeneralAttribute => Some(attr.key, attr)
+        case _ => None
+      }
+    }
+    pairs.toMap
+  }
+  def attribute(attrName: String): Option[FermatGeneralAttribute] = {
+    attributesAsMap.get(attrName)
+  }
 }
 case class FermatComponentNode(label: String, attributes: Iterable[FermatAttribute], children: Seq[FermatGeneralNodeLike]) extends FermatGeneralNodeLike
 
@@ -93,6 +95,12 @@ case class FermatGeneralNode(label: String, attributes: Iterable[FermatAttribute
     }).groupBy(_.label)
     pairs.toMap
   }
+  lazy val events = (attributes.flatMap { a =>
+    a match {
+      case a: FermatEventAttribute => Some(a)
+      case _ => None
+    }
+  })
   def \(childName: String): Seq[FermatNode] = {
     childrenAsMap.get(childName).getOrElse(Seq.empty)
   }

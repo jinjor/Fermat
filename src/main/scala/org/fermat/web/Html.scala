@@ -32,7 +32,6 @@ object Html {
     }
   }
   def apply(node: FermatGeneralNodeLike, getComponentByName: String => Component): Html = {
-
     node match {
       case node: FermatComponentNode => {
         val component = getComponentByName(node.label)
@@ -71,8 +70,15 @@ object Html {
   def toTranscludeArgNode(node: FermatGeneralNodeLike, component: Component, getComponentByName: String => Component): Option[HtmlTranscludeArgNode] = {
     component.transcludeArgsAsMap.get(node.label) map {
       targ =>
-        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.children.map { child =>
-          apply(child, getComponentByName)
+        HtmlTranscludeArgNode(node, HtmlInnerNodes(node.children.map { c =>
+          c match {
+            case c: FermatGeneralNodeLike => {
+              apply(c, getComponentByName)
+            }
+            case _ => {
+              throw new IllegalArgumentException("")
+            }
+          }
         }))
     }
   }
@@ -131,10 +137,10 @@ case class HtmlInnerNodes(value: Seq[Html]) extends HtmlInner
 
 sealed abstract class Html
 sealed abstract class HtmlWithInner extends Html {
-  def node: Node
+  def node: FermatGeneralNodeLike
   def inner: HtmlInner
 }
-case class HtmlNode(node: FermatNode, inner: HtmlInner) extends HtmlWithInner
+case class HtmlNode(node: FermatGeneralNode, inner: HtmlInner) extends HtmlWithInner
 case class HtmlTranscludeTargetNode(name: String) extends Html
 case class HtmlTranscludeArgNode(node: FermatGeneralNodeLike, inner: HtmlInner) extends HtmlWithInner
 case class HtmlComponentNode(node: FermatComponentNode, children: Seq[HtmlTranscludeArgNode], component: Component) extends Html
