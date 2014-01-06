@@ -1,7 +1,9 @@
 <component name="text">
 	<arg name="model"/>
+	<arg name="id"/>
+	<arg name="class"/>
 	<template>
-		<input type="text" onKeyup="change" data="model"></input>
+		<input type="text" id="$id" class="$class" onKeyup="change" data="model"></input>
 	</template>
 	<script>
 		var change = function(e){

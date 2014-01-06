@@ -20,7 +20,7 @@
 		};
 	
     	var var2 = $('<div ></div>');
-var var1 = $('<input data="model" onKeyup="change" type="text"></input>');
+var var1 = $('<input data="model" onKeyup="change" class="$class" id="$id" type="text"></input>');
     	this.$el.html($($(var2)
 .append($(var1).on('keyup', function(){
 	       change(this);
@@ -98,6 +98,9 @@ var Index =
 			this.id = createId();
 		};
 		var editingTodo = null;
+		var create = function(){
+			
+		}
 		
 		scope.newTodo = {}
 		scope.todos = loadTodos();
@@ -105,105 +108,113 @@ var Index =
 	
 	
 	
-    	var var37 = $('<div ></div>');
+    	var var38 = $('<div ></div>');
 var var3 = $('<link href="base.css" rel="stylesheet"></link>');
-var var30 = $('<section id="todoapp"></section>');
-var var6 = $('<header id="header"></header>');
+var var31 = $('<section id="todoapp"></section>');
+var var7 = $('<header id="header"></header>');
 var var4 = $('<h1 ></h1>');
-var var5 = $('<input model="newTodo" autofocus="" placeholder="What needs to be done?" id="new-todo"></input>');
-var var19 = $('<section id="main"></section>');
-var var7 = $('<input type="checkbox" id="toggle-all"></input>');
-var var8 = $('<label for="toggle-all"></label>');
-var var18 = $('<ul id="todo-list"></ul>');
-var var16 = new For({
+var var5 = new Text({
+      	onKeyPress: 'create()',
+model: 'newTodo',
+autofocus: '',
+placeholder: 'What needs to be done?',
+id: 'new-todo'
+      });
+var5.on('update', function(){ self.trigger('update') });
+var var6 = var5.$el;
+var var20 = $('<section id="main"></section>');
+var var8 = $('<input type="checkbox" id="toggle-all"></input>');
+var var9 = $('<label for="toggle-all"></label>');
+var var19 = $('<ul id="todo-list"></ul>');
+var var17 = new For({
       	as: 'todo',
 get items(){return scope.todos; },
     	  set items(v){ scope.todos = v; },
 'each': function(scope){//child scope including parents'
-    	    var var15 = $('<each ></each>');
-var var14 = $('<li ></li>');
-var var12 = $('<div class="view"></div>');
-var var9 = $('<input type="checkbox" class="toggle"></input>');
-var var10 = $('<label data="$todo.name"></label>');
-var var11 = $('<button class="destroy"></button>');
-var var13 = $('<input data="$todo.name" class="edit"></input>');
-var10.text(scope.todo.name)
-var13.text(scope.todo.name)
-    	    var a = var15
-.append($(var14)
-.append($(var12)
-.append($(var9)
-.text(""))
-.append($(var10)
-.text(scope.todo.name))
-.append($(var11)
-.text("")))
+    	    var var16 = $('<each ></each>');
+var var15 = $('<li ></li>');
+var var13 = $('<div class="view"></div>');
+var var10 = $('<input type="checkbox" class="toggle"></input>');
+var var11 = $('<label data="$todo.name"></label>');
+var var12 = $('<button class="destroy"></button>');
+var var14 = $('<input data="$todo.name" class="edit"></input>');
+var11.text(scope.todo.name)
+var14.text(scope.todo.name)
+    	    var a = var16
+.append($(var15)
 .append($(var13)
+.append($(var10)
+.text(""))
+.append($(var11)
+.text(scope.todo.name))
+.append($(var12)
+.text("")))
+.append($(var14)
 .text(scope.todo.name)));
     	    console.log(scope);
     	    console.log(a.html());
     	    return a.children();
           }
       });
-var16.on('update', function(){ self.trigger('update') });
-var var17 = var16.$el;
-var var29 = $('<footer id="footer"></footer>');
-var var21 = $('<span id="todo-count"></span>');
-var var20 = $('<strong ></strong>');
-var var28 = $('<ul id="filters"></ul>');
-var var23 = $('<li ></li>');
-var var22 = $('<a href="#/" class="selected"></a>');
-var var25 = $('<li ></li>');
-var var24 = $('<a href="#/active"></a>');
-var var27 = $('<li ></li>');
-var var26 = $('<a href="#/completed"></a>');
-var var36 = $('<footer id="info"></footer>');
-var var31 = $('<p ></p>');
-var var33 = $('<p ></p>');
-var var32 = $('<a href="https://github.com/jinjor"></a>');
-var var35 = $('<p ></p>');
-var var34 = $('<a href="http://todomvc.com"></a>');
-    	this.$el.html($($(var37)
+var17.on('update', function(){ self.trigger('update') });
+var var18 = var17.$el;
+var var30 = $('<footer id="footer"></footer>');
+var var22 = $('<span id="todo-count"></span>');
+var var21 = $('<strong ></strong>');
+var var29 = $('<ul id="filters"></ul>');
+var var24 = $('<li ></li>');
+var var23 = $('<a href="#/" class="selected"></a>');
+var var26 = $('<li ></li>');
+var var25 = $('<a href="#/active"></a>');
+var var28 = $('<li ></li>');
+var var27 = $('<a href="#/completed"></a>');
+var var37 = $('<footer id="info"></footer>');
+var var32 = $('<p ></p>');
+var var34 = $('<p ></p>');
+var var33 = $('<a href="https://github.com/jinjor"></a>');
+var var36 = $('<p ></p>');
+var var35 = $('<a href="http://todomvc.com"></a>');
+    	this.$el.html($($(var38)
 .append($(var3)
 .text(""))
-.append($(var30)
-.append($(var6)
+.append($(var31)
+.append($(var7)
 .append($(var4)
 .text("todos"))
-.append($(var5)
-.text("")))
-.append($(var19)
-.append($(var7)
-.text(""))
-.append($(var8)
-.text("Mark all as complete"))
-.append($(var18)
-.append(var17)))
-.append($(var29)
-.append($(var21)
+.append(var6))
 .append($(var20)
-.text("1")))
-.append($(var28)
-.append($(var23)
+.append($(var8)
+.text(""))
+.append($(var9)
+.text("Mark all as complete"))
+.append($(var19)
+.append(var18)))
+.append($(var30)
 .append($(var22)
-.text("All")))
-.append($(var25)
+.append($(var21)
+.text("1")))
+.append($(var29)
 .append($(var24)
-.text("Active")))
-.append($(var27)
+.append($(var23)
+.text("All")))
 .append($(var26)
+.append($(var25)
+.text("Active")))
+.append($(var28)
+.append($(var27)
 .text("Completed"))))))
-.append($(var36)
-.append($(var31)
-.text("Double-click to edit a todo"))
-.append($(var33)
+.append($(var37)
 .append($(var32)
-.text("Yosuke Torii")))
-.append($(var35)
+.text("Double-click to edit a todo"))
 .append($(var34)
+.append($(var33)
+.text("Yosuke Torii")))
+.append($(var36)
+.append($(var35)
 .text("TodoMVC"))))));
     	self.render = function(){
-    	    var16.render()
+    	    var5.render()
+var17.render()
     	};
         
 	    self.render();
