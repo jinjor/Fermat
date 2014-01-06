@@ -71,7 +71,10 @@ object JavaScript {
 		      case FermatDynamicText(modelName) => InnerDynamicText(modelName)
 		    }
           }
-          case None => InnerStaticText("")
+          case None => {
+            println(html)
+            InnerStaticText("")
+          }
         }
       } else {
         InnerElements(children.flatMap { child =>

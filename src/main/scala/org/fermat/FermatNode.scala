@@ -25,8 +25,9 @@ object FermatNode {
         createNode(label, attributes, Seq())
       }
     } else {
+      val multi = node.child.length > 1
       val children = node.child.flatMap { c =>
-        if(c.isInstanceOf[Text]){
+        if(multi && c.isInstanceOf[Text]){
           None
         }else{
           Some(FermatNode(c, isComponent))

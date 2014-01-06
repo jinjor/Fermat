@@ -41,8 +41,9 @@ object Component {
         val templateOpt = if (templates.isEmpty) None else Some(templates(0))
         val viewImpl = templateOpt match {
           case Some(template) => {
+            val multi = template.child.length > 1
             val nodes = template.child.flatMap { c =>
-              if(c.isInstanceOf[Text]){
+              if(multi && c.isInstanceOf[Text]){
                 None
               }else{
                 Some(FermatNode(c, requiresMap.contains _).asInstanceOf[FermatGeneralNodeLike])
