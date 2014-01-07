@@ -4,7 +4,7 @@
 	<arg name="else" transclude="true"/>
 	<script>
 		self.render = function(){
-			var a = scope[scope.condition ? "then" : "else"](scope);
+			var a = scope[scope.condition ? 'then' : 'else'](scope);
 			self.$el.html(a);
 			//self.$el.first().replaceWith(a);
 			//self.$el.each(function(){$(this).remove()});

@@ -49,8 +49,8 @@ object Component {
                 Some(FermatNode(c, requiresMap.contains _).asInstanceOf[FermatGeneralNodeLike])
               }
             }
-            val scriptNode = (template \ "script").headOption.map {
-              scriptNode => Script(scriptNode.child.toString)
+            val scriptNode = (node \ "script").headOption.map {
+              scriptNode => Script(scriptNode.text)
             }
             DefaultViewImpl(Template(nodes), scriptNode)
           }
