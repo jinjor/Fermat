@@ -9,6 +9,8 @@ import org.fermat.FermatStaticText
 import org.fermat.FermatGeneralAttribute
 import org.fermat.FermatDynamicText
 import org.fermat.FermatGeneralNode
+import org.fermat.FermatStaticText
+import org.fermat.FermatGeneralAttribute
 
 object JavaScript {
 
@@ -50,7 +52,11 @@ object JavaScript {
   }
 
   private def kindOfInput(html: HtmlWithInner): Boolean = {
-    (html.node.label == "input" && html.node.attribute("type").map(_.toString.trim == "text").getOrElse(false)) ||
+    println(html.node.attribute("data"))
+    (html.node.label == "input" && (html.node.attribute("type") match {
+      case Some(FermatGeneralAttribute(_, FermatStaticText("text"))) => true
+      case _ => false
+    })) ||
       (html.node.label == "textarea")
   }
 
@@ -59,17 +65,18 @@ object JavaScript {
       case FermatStaticText(text) => InnerStaticText(text)
       case FermatDynamicText(modelName) => InnerDynamicText(modelName)
     }
-    case HtmlInnerNodes(children) => {//TODO
+    case HtmlInnerNodes(children) => { //TODO
       if (children.isEmpty) {
+
         html.node.attribute("data") match {
           case Some(FermatGeneralAttribute(key, value)) => if (kindOfInput(html)) {
             println(html.node.label);
             InnerInputText(value.asInstanceOf[FermatDynamicText].modelName)
           } else {
             value match {
-		      case FermatStaticText(text) => InnerStaticText(text)
-		      case FermatDynamicText(modelName) => InnerDynamicText(modelName)
-		    }
+              case FermatStaticText(text) => InnerStaticText(text)
+              case FermatDynamicText(modelName) => InnerDynamicText(modelName)
+            }
           }
           case None => {
             println(html)
@@ -241,8 +248,9 @@ object JavaScript {
     innerData match {
       case InnerDynamicText(modelVarName) =>
         List(s"${elementVarName}.text(scope.${modelVarName})")
-      case InnerInputText(modelVarName) =>
+      case InnerInputText(modelVarName) => {
         List(s"""!${elementVarName}.is(":focus") && ${elementVarName}.val(scope.${modelVarName})""")
+      }
       case InnerElements(children) =>
         children.flatMap(renderScripts)
       case _ => Nil
