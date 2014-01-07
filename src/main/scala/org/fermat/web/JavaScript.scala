@@ -124,8 +124,8 @@ object JavaScript {
       } yield s"""'${name}': function(scope){//child scope including parents'
     	    ${declarations.mkString("\n")}
     	    var a = ${expr};
-    	    console.log(scope);
-    	    console.log(a.html());
+    	    //console.log(scope);
+    	    //console.log(a.html());
     	    return a.children();
           }"""
 
