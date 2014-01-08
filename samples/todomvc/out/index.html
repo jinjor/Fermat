@@ -19,8 +19,8 @@
 			scope.model = $(e).val();
 		};
 	
-    	var var2 = $('<div ></div>');
-var var1 = $('<input data="model" onKeyup="change" class="$class" id="$id" type="text"></input>');
+    	var var2 = $('<div />');
+var var1 = $('<input type="text"/>');
     	this.$el.html($($(var2)
 .append($(var1).on('keyup', function(){
 	       change(this);
@@ -39,7 +39,7 @@ var If =
     	var self = this;
         
 		self.render = function(){
-			var a = scope[scope.condition ? "then" : "else"](scope);
+			var a = scope[scope.condition ? 'then' : 'else'](scope);
 			self.$el.html(a);
 			//self.$el.first().replaceWith(a);
 			//self.$el.each(function(){$(this).remove()});
@@ -108,36 +108,36 @@ var Index =
 	
 	
 	
-    	var var38 = $('<div ></div>');
-var var3 = $('<link href="base.css" rel="stylesheet"></link>');
-var var31 = $('<section id="todoapp"></section>');
-var var7 = $('<header id="header"></header>');
-var var4 = $('<h1 ></h1>');
+    	var var38 = $('<div />');
+var var3 = $('<link href="base.css" rel="stylesheet"/>');
+var var31 = $('<section id="todoapp"/>');
+var var7 = $('<header id="header"/>');
+var var4 = $('<h1 />');
 var var5 = new Text({
-      	onKeyPress: 'create()',
-model: 'newTodo',
+      	get model(){return scope.newTodo.name; },
+    	          set model(v){ scope.newTodo.name = v; },
 autofocus: '',
 placeholder: 'What needs to be done?',
 id: 'new-todo'
       });
 var5.on('update', function(){ self.trigger('update') });
 var var6 = var5.$el;
-var var20 = $('<section id="main"></section>');
-var var8 = $('<input type="checkbox" id="toggle-all"></input>');
-var var9 = $('<label for="toggle-all"></label>');
-var var19 = $('<ul id="todo-list"></ul>');
+var var20 = $('<section id="main"/>');
+var var8 = $('<input type="checkbox" id="toggle-all"/>');
+var var9 = $('<label for="toggle-all"/>');
+var var19 = $('<ul id="todo-list"/>');
 var var17 = new For({
       	as: 'todo',
 get items(){return scope.todos; },
-    	  set items(v){ scope.todos = v; },
+    	          set items(v){ scope.todos = v; },
 'each': function(scope){//child scope including parents'
-    	    var var16 = $('<each ></each>');
-var var15 = $('<li ></li>');
-var var13 = $('<div class="view"></div>');
-var var10 = $('<input type="checkbox" class="toggle"></input>');
-var var11 = $('<label data="$todo.name"></label>');
-var var12 = $('<button class="destroy"></button>');
-var var14 = $('<input data="$todo.name" class="edit"></input>');
+    	    var var16 = $('<each />');
+var var15 = $('<li />');
+var var13 = $('<div class="view"/>');
+var var10 = $('<input type="checkbox" class="toggle"/>');
+var var11 = $('<label />');
+var var12 = $('<button class="destroy"/>');
+var var14 = $('<input class="edit"/>');
 var11.text(scope.todo.name)
 var14.text(scope.todo.name)
     	    var a = var16
@@ -151,29 +151,29 @@ var14.text(scope.todo.name)
 .text("")))
 .append($(var14)
 .text(scope.todo.name)));
-    	    console.log(scope);
-    	    console.log(a.html());
+    	    //console.log(scope);
+    	    //console.log(a.html());
     	    return a.children();
           }
       });
 var17.on('update', function(){ self.trigger('update') });
 var var18 = var17.$el;
-var var30 = $('<footer id="footer"></footer>');
-var var22 = $('<span id="todo-count"></span>');
-var var21 = $('<strong ></strong>');
-var var29 = $('<ul id="filters"></ul>');
-var var24 = $('<li ></li>');
-var var23 = $('<a href="#/" class="selected"></a>');
-var var26 = $('<li ></li>');
-var var25 = $('<a href="#/active"></a>');
-var var28 = $('<li ></li>');
-var var27 = $('<a href="#/completed"></a>');
-var var37 = $('<footer id="info"></footer>');
-var var32 = $('<p ></p>');
-var var34 = $('<p ></p>');
-var var33 = $('<a href="https://github.com/jinjor"></a>');
-var var36 = $('<p ></p>');
-var var35 = $('<a href="http://todomvc.com"></a>');
+var var30 = $('<footer id="footer"/>');
+var var22 = $('<span id="todo-count"/>');
+var var21 = $('<strong />');
+var var29 = $('<ul id="filters"/>');
+var var24 = $('<li />');
+var var23 = $('<a href="#/" class="selected"/>');
+var var26 = $('<li />');
+var var25 = $('<a href="#/active"/>');
+var var28 = $('<li />');
+var var27 = $('<a href="#/completed"/>');
+var var37 = $('<footer id="info"/>');
+var var32 = $('<p />');
+var var34 = $('<p />');
+var var33 = $('<a href="https://github.com/jinjor"/>');
+var var36 = $('<p />');
+var var35 = $('<a href="http://todomvc.com"/>');
     	this.$el.html($($(var38)
 .append($(var3)
 .text(""))
@@ -224,7 +224,7 @@ var17.render()
   		top.on("update", function(){
   			top.render();
   		});
-  	    $('body').html(top.$el);
+  	    $('body').html(top.$el.children());
   	});
   </script>
         </head>

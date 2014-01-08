@@ -3,7 +3,7 @@
 	<arg name="id"/>
 	<arg name="class"/>
 	<template>
-		<input type="text" id="$id" class="$class" onKeyup="change" data="model"></input>
+		<input type="text" id="$id" class="$class" onKeyup="change" data="$model"></input>
 	</template>
 	<script>
 		var change = function(e){

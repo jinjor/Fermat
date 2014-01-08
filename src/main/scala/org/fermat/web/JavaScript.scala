@@ -136,20 +136,22 @@ object JavaScript {
     	    return a.children();
           }"""
 
-      val args = (html.node.attributes.map { attr =>
+      val args = (html.node.attributes.flatMap { attr =>
         attr match {
           case FermatGeneralAttribute(key, value) => value match {
             case FermatDynamicText(modelName) =>
-              s"""get ${key}(){return scope.${modelName}; },
-    	          set ${key}(v){ scope.${modelName} = v; }"""
-            case FermatStaticText(text) => s"""${key}: '${text}'"""
+              Some(s"""get ${key}(){return scope.${modelName}; },
+    	          set ${key}(v){ scope.${modelName} = v; }""")
+            case FermatStaticText(text) => Some(s"""${key}: '${text}'""")
           }
-          case _ => ""
+          case _ => None
         }
       })
       val arg = s"""{
       	${(args ++ keyValues).mkString(",\n")}
       }""" //TODO name
+      
+      println(args)
       val componentExpression = s"""new ${Html.classNameOf(html.component)}(${arg})"""
       val innerData: InnerData = InnerDataCapsuled
       val componentVarName = crateNewVarName()
@@ -210,7 +212,7 @@ object JavaScript {
   		top.on("update", function(){
   			top.render();
   		});
-  	    $$('body').html(top.$$el);
+  	    $$('body').html(top.$$el.children());
   	});"""
 
   def elementDeclarations(prof: ElementProf): List[String] = {
