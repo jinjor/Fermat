@@ -3,6 +3,7 @@ import scala.xml.XML
 import org.fermat.web.Web
 import org.fermat.web.Html
 import org.fermat.util.Dao
+import org.fermat.web.Backbone
 
 object Main {
 
@@ -25,7 +26,8 @@ object Main {
     Component(jarPath, fullPathOfTop) match {
       case Right(topComponent) => {
         val deps = Dependency.getAllComponent(jarPath, topComponent, fullPathOf)
-        Dao.write(Web.all(root, deps))
+        val js = Backbone
+        Dao.write(Web.all(js, root, deps))
       }
       case Left(ex) => ex.cause.printStackTrace()
     }
