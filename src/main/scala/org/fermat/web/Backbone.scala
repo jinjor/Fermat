@@ -188,6 +188,7 @@ object Backbone extends JavaScript{
       Backbone.clazzDef(component)
     }
     s"""
+    <script>
   	$$(function(){
 		${classDefs.mkString("\n")}
   		var top = new ${Html.classNameOf(topComponent.component)}({});
@@ -195,7 +196,8 @@ object Backbone extends JavaScript{
   			top.render();
   		});
   	    $$('body').html(top.$$el.children());
-  	});"""
+  	});
+  	</script>"""
   }
 
   def elementDeclarations(prof: ElementProf): List[String] = {
@@ -290,5 +292,6 @@ object Backbone extends JavaScript{
   def clazzDef(htmlComponent: HtmlComponent): String = {
     s"var ${Html.classNameOf(htmlComponent.component)} = ${clazz(htmlComponent)};"
   }
-
+  
+  def makeSubOutput = None
 }

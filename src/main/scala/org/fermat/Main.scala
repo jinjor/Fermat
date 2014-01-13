@@ -27,7 +27,7 @@ object Main {
       case Right(topComponent) => {
         val deps = Dependency.getAllComponent(jarPath, topComponent, fullPathOf)
         val js = Backbone
-        Dao.write(Web.all(js, root, deps))
+        Web.all(js, root, deps).foreach(Dao.write)
       }
       case Left(ex) => ex.cause.printStackTrace()
     }

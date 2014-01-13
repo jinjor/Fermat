@@ -119,7 +119,7 @@ object Html {
       case _ => ""
     }
   }
-  def classNameOf(component: Component): String = component.node.attribute("name").get.toString.capitalize
+  def classNameOf(component: Component): String = component.name.capitalize
 
 }
 case class HtmlComponent(component: Component, viewImpl: HtmlViewImpl)

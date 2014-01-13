@@ -8,17 +8,17 @@ import org.fermat.Dependency
 
 object Web {
 
-  def all(js: JavaScript, root: String, deps: List[Component]): Output = {
+  def all(js: JavaScript, root: String, deps: List[Component]): Seq[Output] = {
     val componentMap = Map[String, Component]()
     val (_, _htmlDeps) = (deps.foldLeft((componentMap, List[HtmlComponent]())) {
       case ((componentMap, htmlDeps), component) =>
         val html = Html(component, (name: String) => componentMap.get(name).get)
-        (componentMap + (component.node.attribute("name").get.toString -> component), html :: htmlDeps)
+        (componentMap + (component.name -> component), html :: htmlDeps)
     })
     val htmlDeps = _htmlDeps.reverse
     val htmlComponent = htmlDeps.last
 
-    val wholeScript = makeHeaderScript(js, htmlDeps, htmlComponent)
+    val wholeScript = js.makeHeaderScript(htmlDeps, htmlComponent)
 
     val html = s"""
       <html>
@@ -30,13 +30,10 @@ object Web {
         </body>
       </html>"""
 
-    Output(s"${root}/out/index.html", html)
+    val subOutputs = js.makeSubOutput match {
+      case Some(f) => htmlDeps.map(f)
+      case None => Seq()
+    }
+    subOutputs :+ Output(s"${root}/out/index.html", html)
   }
-
-  private def makeHeaderScript(js: JavaScript, htmlDeps: Seq[HtmlComponent], topComponent: HtmlComponent) = {
-    s"""<script>
-  	${js.makeHeaderScript(htmlDeps, topComponent)}
-    </script>"""
-  }
-
 }

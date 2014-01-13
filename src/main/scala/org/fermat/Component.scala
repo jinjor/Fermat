@@ -56,7 +56,8 @@ object Component {
           }
           case None => NonLimitViewImpl(Script((node \ "script").head.child(0).toString))
         }
-        Right(Component(node, requires, transcludeArgs, viewImpl))
+        val componentName = node.attribute("name").get.toString
+        Right(Component(componentName, requires, transcludeArgs, viewImpl))
       }
       case Left(ex) => {
         ex.printStackTrace()
@@ -79,7 +80,7 @@ object Component {
   }
 }
 
-case class Component(node: Node, requires: Seq[Require], transcludeArgs: Seq[TranscludeArg],
+case class Component(name: String, requires: Seq[Require], transcludeArgs: Seq[TranscludeArg],
   viewImpl: ViewImplementation) {
   lazy val transcludeArgsAsMap = transcludeArgs.map(ta => (ta.name, ta)).toMap
 }

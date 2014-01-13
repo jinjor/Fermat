@@ -11,6 +11,8 @@ import org.fermat.FermatDynamicText
 import org.fermat.FermatGeneralNode
 import org.fermat.FermatStaticText
 import org.fermat.FermatGeneralAttribute
+import scala.collection.Seq
+import org.fermat.util.Output
 
 trait JavaScript {
 
@@ -38,7 +40,24 @@ trait JavaScript {
       (html.node.label == "textarea")
   }
 
-  def makeHeaderScript(htmlDeps: Seq[HtmlComponent], topComponent: HtmlComponent)
+  def makeHeaderScript(htmlDeps: Seq[HtmlComponent], topComponent: HtmlComponent):String
 
-
+  def makeSubOutput: Option[HtmlComponent => Output]
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
