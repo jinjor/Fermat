@@ -13,6 +13,8 @@ import org.fermat.FermatStaticText
 import org.fermat.FermatGeneralAttribute
 import org.fermat.util.Output
 import org.fermat.Require
+import org.fermat.FermatDynamicText
+import org.fermat.FermatStaticText
 
 object Polymer extends JavaScript{
 
@@ -27,7 +29,7 @@ object Polymer extends JavaScript{
     s"""${xmlPath.replace(".xml", ".html")}"""
   }
   private def linkTag(path: String): String = {
-    s"""<link rel="import" src="${path}"><link>"""
+    s"""<link rel="import" href="${path}"><link>"""
   }
   private def reqToLinkTag(req: Require): String = {
     linkTag(xmlPathTohtmlPath(req.src))
@@ -42,28 +44,64 @@ object Polymer extends JavaScript{
     linkTags.mkString("\n")
   }
   
+  private def htmlAsString(htmlInner: HtmlInner): String = {
+    htmlInner match {
+      case HtmlInnerText(text) => text match {
+        case FermatDynamicText(s) => s"""{{$s}}"""
+        case FermatStaticText(s) => s
+      }
+      case HtmlInnerNodes(htmls) => htmls.map(htmlAsString).mkString("\n")
+    }
+    
+  }
+  private def htmlAsString(html: Html): String = {
+    html match {
+      case hwi: HtmlWithInner => {
+        Html.toHtmlString(hwi.node, Some(htmlAsString(hwi.inner)))
+      }
+      case HtmlTranscludeTargetNode(name) => ""//TODO ?
+      case HtmlComponentNode(node, children, component) => {
+        Html.toHtmlString(node, Some(children.map(htmlAsString).mkString("\n")))
+      }
+    }
+  }
   private def templateTag(component: HtmlComponent): String = {
     component.viewImpl match {
       case HtmlDefaultViewImpl(template, script) => {
+        val innerTags: Seq[Html] = template.value
+        val htmlString = innerTags.map(htmlAsString).mkString("\n")
+        
         val noScript = if(script.trim.isEmpty) "noscript" else ""
         s"""<template $noScript>
-        $template
+        ${htmlString}
         </template>"""
       }
       case HtmlNonLimitViewImpl(_) => ""
     }
   }
+  private def scriptTag(component: HtmlComponent): String = {
+    val script = component.viewImpl match {
+      case HtmlDefaultViewImpl(_, script) => {
+        if(script.trim.isEmpty) None else Some(script)
+      }
+      case HtmlNonLimitViewImpl(s) => Some(s)
+    }
+    script match {
+      case Some(s) => s"<script>$s</script>"
+      case None => ""
+    }
+  }
   
   def makeSubOutput: Option[HtmlComponent => Output] = Some { subComponent =>
     val path = s"""${subComponent.component.name}.html"""
-    
     val linkTags = subComponent.component.requires.map(reqToLinkTag)
     val content = s"""
-    <element name="${subComponent.component.name}">
+    ${linkTags}
+    <polymer-element name="${subComponent.component.name}">
     	${templateTag(subComponent)}
-    </element>
+    	${scriptTag(subComponent)}
+    </polymer-element>
     """
-    
     Output(path, content)
   }
 

@@ -88,16 +88,7 @@ object Html {
   def toHtmlString(htmlNode: HtmlNode): String = { //TODO
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
-        val attributes = (n.attributes.flatMap { attr =>
-          attr match {
-            case FermatGeneralAttribute(key, value) => value match {
-              case FermatStaticText(text) => Some(s"""${key}="${text}"""")
-              case _ => None
-            }
-            case FermatEventAttribute(_) => None
-          }
-        }).mkString(" ")
-        s"<${n.label} ${attributes}/>"
+        toHtmlString(n, None)
       }
       case _ => ""
     }
@@ -105,30 +96,37 @@ object Html {
   def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
-        val attributes = (n.attributes.flatMap { attr =>
-          attr match {
-            case FermatGeneralAttribute(key, value) => value match {
-              case FermatStaticText(text) => Some(s"""${key}="${text}"""")
-              case _ => None
-            }
-            case FermatEventAttribute(_) => None
-          }
-        }).mkString(" ")
-        s"<${n.label} ${attributes}/>"
+        toHtmlString(n, None)
       }
       case _ => ""
     }
   }
+  def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String]): String = {
+    val attributes = (n.attributes.flatMap { attr =>
+      attr match {
+        case FermatGeneralAttribute(key, value) => value match {
+          case FermatStaticText(text) => Some(s"""${key}="${text}"""")
+          case _ => None
+        }
+        case FermatEventAttribute(_) => None
+      }
+    }).mkString(" ")
+    inner match {
+      case Some(inner) => s"<${n.label} ${attributes}>${inner}</{n.label}>"
+      case None => s"<${n.label} ${attributes}/>"
+    }
+  }
+
   def classNameOf(component: Component): String = component.name.capitalize
 
 }
 case class HtmlComponent(component: Component, viewImpl: HtmlViewImpl)
 
 sealed abstract class HtmlViewImpl
-case class HtmlDefaultViewImpl(template: HtmlInnerNodes, script: String) extends HtmlViewImpl{
-//  template.value.foreach {
-//    v => println(v.getClass())
-//  }
+case class HtmlDefaultViewImpl(template: HtmlInnerNodes, script: String) extends HtmlViewImpl {
+  //  template.value.foreach {
+  //    v => println(v.getClass())
+  //  }
 }
 case class HtmlNonLimitViewImpl(script: String) extends HtmlViewImpl
 
@@ -142,8 +140,8 @@ sealed abstract class HtmlWithInner extends Html {
   def inner: HtmlInner
 }
 case class HtmlNode(node: FermatGeneralNode, inner: HtmlInner) extends HtmlWithInner
-case class HtmlTranscludeTargetNode(name: String) extends Html
 case class HtmlTranscludeArgNode(node: FermatGeneralNodeLike, inner: HtmlInner) extends HtmlWithInner
+case class HtmlTranscludeTargetNode(name: String) extends Html
 case class HtmlComponentNode(node: FermatComponentNode, children: Seq[HtmlTranscludeArgNode], component: Component) extends Html
 
 
