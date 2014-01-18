@@ -85,24 +85,25 @@ object Html {
     }
   }
 
-  def toHtmlString(htmlNode: HtmlNode): String = { //TODO
+  def toHtmlString(htmlNode: HtmlNode, fixLabel: Option[String => String]): String = { //TODO
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
-        toHtmlString(n, None)
+        toHtmlString(n, None, fixLabel)
       }
       case _ => ""
     }
   }
-  def toHtmlString(htmlNode: HtmlTranscludeArgNode): String = {
+  def toHtmlString(htmlNode: HtmlTranscludeArgNode, fixLabel: Option[String => String]): String = {
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
-        toHtmlString(n, None)
+        toHtmlString(n, None, fixLabel)
       }
       case _ => ""
     }
   }
-  def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String]): String = {
-    toHtmlString(n, inner, identity)
+  def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: Option[String => String]): String = {
+    val _fixLabel:String => String = fixLabel.getOrElse(identity)
+    toHtmlString(n, inner, _fixLabel)
   }
   private def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: String => String): String = {
     val attributes = (n.attributes.flatMap { attr =>

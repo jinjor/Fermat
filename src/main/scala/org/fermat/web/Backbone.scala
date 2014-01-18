@@ -70,7 +70,7 @@ object Backbone extends JavaScript{
   }
 
   private def toTranscludeArgProf(html: HtmlTranscludeArgNode): TranscludeArgProf = {
-    val s = Html.toHtmlString(html)
+    val s = Html.toHtmlString(html, None)
     val elementExpression = s"""$$('$s')"""
 
     val innerData = toInnerData(html)
@@ -80,7 +80,7 @@ object Backbone extends JavaScript{
 
   private def elementProf(html: Html): Option[ElementProf] = html match {
     case html: HtmlNode => {
-      val s = Html.toHtmlString(html)
+      val s = Html.toHtmlString(html, None)
       if (s.isEmpty) {
         None
       } else {
