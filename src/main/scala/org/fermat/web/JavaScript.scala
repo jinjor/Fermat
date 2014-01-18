@@ -41,8 +41,8 @@ trait JavaScript {
   }
 
   def makeHeaderScript(htmlDeps: Seq[HtmlComponent], topComponent: HtmlComponent):String
-
-  def makeSubOutput: Option[HtmlComponent => Output]
+  def bodyInnerHtml(topComponent: HtmlComponent):String = ""
+  def makeSubOutput: Option[(String, HtmlComponent) => Output]
 }
 
 

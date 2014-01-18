@@ -44,6 +44,11 @@ object Polymer extends JavaScript{
     linkTags.mkString("\n")
   }
   
+  override def bodyInnerHtml(topComponent: HtmlComponent):String = {
+    val label = topComponent.component.name
+    s"<${label}></${label}>"
+  }
+  
   private def htmlAsString(htmlInner: HtmlInner): String = {
     htmlInner match {
       case HtmlInnerText(text) => text match {
@@ -79,22 +84,19 @@ object Polymer extends JavaScript{
       case HtmlNonLimitViewImpl(_) => ""
     }
   }
-  private def scriptTag(component: HtmlComponent): String = {
+  private def scriptTag(component: HtmlComponent): String = {//FIXME
     val script = component.viewImpl match {
       case HtmlDefaultViewImpl(_, script) => {
         if(script.trim.isEmpty) None else Some(script)
       }
       case HtmlNonLimitViewImpl(s) => Some(s)
     }
-    script match {
-      case Some(s) => s"<script>$s</script>"
-      case None => ""
-    }
+    script.map(s => s"<script>$s</script>").getOrElse("")
   }
   
-  def makeSubOutput: Option[HtmlComponent => Output] = Some { subComponent =>
-    val path = s"""${subComponent.component.name}.html"""
-    val linkTags = subComponent.component.requires.map(reqToLinkTag)
+  def makeSubOutput: Option[(String, HtmlComponent) => Output] = Some { (root, subComponent) =>
+    val path = s"""${root}/${subComponent.component.name}.html"""
+    val linkTags = subComponent.component.requires.map(reqToLinkTag).mkString("\n")
     val content = s"""
     ${linkTags}
     <polymer-element name="${subComponent.component.name}">

@@ -102,6 +102,9 @@ object Html {
     }
   }
   def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String]): String = {
+    toHtmlString(n, inner, identity)
+  }
+  private def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: String => String): String = {
     val attributes = (n.attributes.flatMap { attr =>
       attr match {
         case FermatGeneralAttribute(key, value) => value match {
@@ -111,9 +114,10 @@ object Html {
         case FermatEventAttribute(_) => None
       }
     }).mkString(" ")
+    val label = fixLabel(n.label)
     inner match {
-      case Some(inner) => s"<${n.label} ${attributes}>${inner}</{n.label}>"
-      case None => s"<${n.label} ${attributes}/>"
+      case Some(inner) => s"<${label} ${attributes}>${inner}</${label}>"
+      case None => s"<${label} ${attributes}/>"
     }
   }
 

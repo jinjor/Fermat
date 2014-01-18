@@ -19,7 +19,7 @@ object Web {
     val htmlComponent = htmlDeps.last
 
     val wholeScript = js.makeHeaderScript(htmlDeps, htmlComponent)
-
+    val bodyInner = js.bodyInnerHtml(htmlComponent)
     val html = s"""
       <html>
       	<head>
@@ -27,13 +27,15 @@ object Web {
     		$wholeScript
         </head>
       	<body>
+    		${bodyInner}
         </body>
       </html>"""
-
-    val subOutputs = js.makeSubOutput match {
-      case Some(f) => htmlDeps.map(f)
-      case None => Seq()
-    }
-    subOutputs :+ Output(s"${root}/out/index.html", html)
+    val outDir = s"${root}/out"
+    val subOutputs = js.makeSubOutput.map { f =>
+      htmlDeps.map { deps =>
+        f(outDir, deps)
+      }
+    }.getOrElse(Seq())
+    subOutputs :+ Output(s"${outDir}/index.html", html)
   }
 }

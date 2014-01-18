@@ -4,6 +4,7 @@ import org.fermat.web.Web
 import org.fermat.web.Html
 import org.fermat.util.Dao
 import org.fermat.web.Backbone
+import org.fermat.web.Polymer
 
 object Main {
 
@@ -26,7 +27,7 @@ object Main {
     Component(jarPath, fullPathOfTop) match {
       case Right(topComponent) => {
         val deps = Dependency.getAllComponent(jarPath, topComponent, fullPathOf)
-        val js = Backbone
+        val js = Polymer
         Web.all(js, root, deps).foreach(Dao.write)
       }
       case Left(ex) => ex.cause.printStackTrace()
