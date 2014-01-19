@@ -62,13 +62,13 @@ private object FermatText {
     if (modelNames.isEmpty) {
       FermatStaticText(s)
     } else {
-      FermatDynamicText(modelNames)
+      FermatDynamicText(s, modelNames)
     }
   }
 }
 abstract sealed class FermatText
 case class FermatStaticText(value: String) extends FermatText
-case class FermatDynamicText(modelNames: Set[String]) extends FermatText
+case class FermatDynamicText(originalText: String, modelNames: Set[String]) extends FermatText
 
 abstract sealed class FermatAttribute
 case class FermatGeneralAttribute(key: String, value: FermatText) extends FermatAttribute

@@ -38,9 +38,6 @@ object Polymer extends JavaScript{
   }
   
   def makeHeaderScript(htmlDeps: Seq[HtmlComponent], topComponent: HtmlComponent):String = {
-    val classDefs = htmlDeps.map { component =>
-      Backbone.clazzDef(component)
-    }
     val linkTags = topComponent.component.requires.map(reqToLinkTag)
     val path = topComponent.component.name + ".html"
     (linkTags :+ linkTag(path)).mkString("\n")
@@ -54,7 +51,7 @@ object Polymer extends JavaScript{
   private def htmlAsString(htmlInner: HtmlInner): String = {
     htmlInner match {
       case HtmlInnerText(text) => text match {
-        case FermatDynamicText(s) => s"""{{$s}}"""
+        case FermatDynamicText(originalText, modelNames) => println(originalText);originalText
         case FermatStaticText(s) => s
       }
       case HtmlInnerNodes(htmls) => htmls.map(htmlAsString).mkString("\n")

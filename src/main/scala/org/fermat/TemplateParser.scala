@@ -10,7 +10,7 @@ object TemplateParser extends RegexParsers {
   private def identifier : Parser[String] =  """[a-z]+[A-Z0-9]*""".r
   private def expr : Parser[String] = intLiteral | stringLiteral | identifier
   private def variable: Parser[String] = "{{" ~> expr <~ "}}"
-  private def all: Parser[Set[String]] = whiteSpace ~> rep(variable <~ chars) <~ whiteSpace ^^ {
+  private def all: Parser[Set[String]] = opt(whiteSpace) ~> rep(variable <~ opt(chars)) <~ opt(whiteSpace) ^^ {
     variables =>
     val set: Set[String] = HashSet()
     variables.foldLeft(set){

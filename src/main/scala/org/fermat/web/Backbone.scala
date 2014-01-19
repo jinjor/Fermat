@@ -41,7 +41,7 @@ object Backbone extends JavaScript{
   private def toInnerData(html: HtmlWithInner): InnerData[ElementProf] = html.inner match {
     case HtmlInnerText(text) => text match {
       case FermatStaticText(text) => InnerStaticText(text)
-      case FermatDynamicText(modelName) => InnerDynamicText(modelName)
+      case FermatDynamicText(_, modelNames) => InnerDynamicText(modelNames)
     }
     case HtmlInnerNodes(children) => { //TODO
       if (children.isEmpty) {
@@ -52,7 +52,7 @@ object Backbone extends JavaScript{
           } else {
             value match {
               case FermatStaticText(text) => InnerStaticText(text)
-              case FermatDynamicText(modelName) => InnerDynamicText(modelName)
+              case FermatDynamicText(_, modelNames) => InnerDynamicText(modelNames)
             }
           }
           case None => {
@@ -116,9 +116,9 @@ object Backbone extends JavaScript{
       val args = (html.node.attributes.flatMap { attr =>
         attr match {
           case FermatGeneralAttribute(key, value) => value match {
-            case FermatDynamicText(modelName) =>
-              Some(s"""get ${key}(){return scope.${modelName}; },
-    	          set ${key}(v){ scope.${modelName} = v; }""")
+            case FermatDynamicText(_, modelNames) =>
+              Some(s"""get ${key}(){return scope.${modelNames.head}; },
+    	          set ${key}(v){ scope.${modelNames.head} = v; }""")//TODO template
             case FermatStaticText(text) => Some(s"""${key}: '${text}'""")
           }
           case _ => None
