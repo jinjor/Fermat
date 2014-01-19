@@ -45,11 +45,10 @@ object Backbone extends JavaScript{
     }
     case HtmlInnerNodes(children) => { //TODO
       if (children.isEmpty) {
-
         html.node.attribute("data") match {
           case Some(FermatGeneralAttribute(key, value)) => if (kindOfInput(html)) {
             println(html.node.label);
-            InnerInputText(value.asInstanceOf[FermatDynamicText].modelName)
+            InnerInputText(value.asInstanceOf[FermatDynamicText].modelNames)
           } else {
             value match {
               case FermatStaticText(text) => InnerStaticText(text)
@@ -145,7 +144,7 @@ object Backbone extends JavaScript{
         if (s.isEmpty) "" else s"""\n.append($s)"""
       }).mkString
       case InnerStaticText(text) => s"""\n.text("$text")"""
-      case InnerDynamicText(modelName) => s"""\n.text(scope.$modelName)"""
+      case InnerDynamicText(modelNames) => s"""\n.text(scope.${modelNames.head})"""//FIXME template
       case _ => ""
     })
   }

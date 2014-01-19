@@ -47,7 +47,7 @@ object Polymer extends JavaScript{
   }
   
   override def bodyInnerHtml(topComponent: HtmlComponent):String = {
-    val label = topComponent.component.name
+    val label = fixLabel(topComponent.component.name)
     s"<${label}></${label}>"
   }
   
@@ -65,7 +65,7 @@ object Polymer extends JavaScript{
     
     html match {
       case hwi: HtmlWithInner => {
-        Html.toHtmlString(hwi.node, Some(htmlAsString(hwi.inner)), Some(fixLabel))
+        Html.toHtmlString(hwi.node, Some(htmlAsString(hwi.inner)), None)
       }
       case HtmlTranscludeTargetNode(name) => ""//TODO ?
       case HtmlComponentNode(node, children, component) => {
@@ -94,10 +94,11 @@ object Polymer extends JavaScript{
       }
       case HtmlNonLimitViewImpl(s) => Some(s)
     }
+    val label = fixLabel(component.component.name)
     script.map(s => s"""<script>
         var scope = {};
         $s
-        Polymer('tk-binding-to-elements', scope);
+        Polymer('${label}', scope);
     </script>""").getOrElse("")
   }
   

@@ -27,9 +27,9 @@ object FermatNode {
     } else {
       val multi = node.child.length > 1
       val children = node.child.flatMap { c =>
-        if(multi && c.isInstanceOf[Text]){
+        if (multi && c.isInstanceOf[Text]) {
           None
-        }else{
+        } else {
           Some(FermatNode(c, isComponent))
         }
       }
@@ -57,15 +57,18 @@ case class Event(methodName: String, name: String)
 abstract sealed class FermatNode
 
 private object FermatText {
-  def apply(s: String): FermatText = if (s.startsWith("$")) {
-    FermatDynamicText(s.tail)
-  } else {
-    FermatStaticText(s)
+  def apply(s: String): FermatText = {
+    val modelNames = TemplateParser.extractParamsFromString(s)
+    if (modelNames.isEmpty) {
+      FermatStaticText(s)
+    } else {
+      FermatDynamicText(modelNames)
+    }
   }
 }
 abstract sealed class FermatText
 case class FermatStaticText(value: String) extends FermatText
-case class FermatDynamicText(modelName: String) extends FermatText
+case class FermatDynamicText(modelNames: Set[String]) extends FermatText
 
 abstract sealed class FermatAttribute
 case class FermatGeneralAttribute(key: String, value: FermatText) extends FermatAttribute
@@ -75,10 +78,10 @@ trait FermatGeneralNodeLike extends FermatNode {
   def label: String
   def attributes: Iterable[FermatAttribute]
   def children: Seq[FermatNode]
-  if(label == "template"){
+  if (label == "template") {
     throw new IllegalArgumentException()
   }
-  
+
   private lazy val attributesAsMap = {
     val pairs = attributes.flatMap {
       _ match {

@@ -19,8 +19,8 @@ trait JavaScript {
   sealed abstract class InnerData[+T]
   protected case class InnerElements[T](children: Seq[T]) extends InnerData[T]
   protected case class InnerStaticText(text: String) extends InnerData
-  protected case class InnerDynamicText(modelName: String) extends InnerData
-  protected case class InnerInputText(modelName: String) extends InnerData
+  protected case class InnerDynamicText(modelNames: Set[String]) extends InnerData
+  protected case class InnerInputText(modelNames: Set[String]) extends InnerData
   protected case object InnerDataCapsuled extends InnerData
 
   def preLoadTagsAsString: String
