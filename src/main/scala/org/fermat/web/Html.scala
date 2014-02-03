@@ -17,6 +17,7 @@ import org.fermat.FermatGeneralAttribute
 import org.fermat.FermatEventAttribute
 import org.fermat.FermatDynamicText
 import org.fermat.FermatStaticText
+import org.fermat.Event
 
 object Html {
   def apply(component: Component, getComponent: String => Component): HtmlComponent = {
@@ -85,34 +86,38 @@ object Html {
     }
   }
 
-  def toHtmlString(htmlNode: HtmlNode, fixLabel: Option[String => String]): String = { //TODO
+  def toHtmlString(htmlNode: HtmlNode, fixLabel: Option[String => String],
+      eventAttrToString: Event => String): String = { //TODO
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
-        toHtmlString(n, None, fixLabel)
+        toHtmlString(n, None, fixLabel, eventAttrToString)
       }
       case _ => ""
     }
   }
-  def toHtmlString(htmlNode: HtmlTranscludeArgNode, fixLabel: Option[String => String]): String = {
+  def toHtmlString(htmlNode: HtmlTranscludeArgNode, fixLabel: Option[String => String],
+      eventAttrToString: Event => String): String = {
     htmlNode.node match {
       case n: FermatGeneralNodeLike => {
-        toHtmlString(n, None, fixLabel)
+        toHtmlString(n, None, fixLabel, eventAttrToString)
       }
       case _ => ""
     }
   }
-  def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: Option[String => String]): String = {
+  def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: Option[String => String],
+      eventAttrToString: Event => String): String = {
     val _fixLabel:String => String = fixLabel.getOrElse(identity)
-    toHtmlString(n, inner, _fixLabel)
+    toHtmlString(n, inner, _fixLabel, eventAttrToString)
   }
-  private def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: String => String): String = {
+  private def toHtmlString(n: FermatGeneralNodeLike, inner: Option[String], fixLabel: String => String,
+      eventAttrToString: Event => String): String = {
     val attributes = (n.attributes.flatMap { attr =>
       attr match {
         case FermatGeneralAttribute(key, value) => value match {
           case FermatStaticText(text) => Some(s"""${key}="${text}"""")
           case _ => None
         }
-        case FermatEventAttribute(_) => None
+        case FermatEventAttribute(e) => Some(eventAttrToString(e))
       }
     }).mkString(" ")
     val label = fixLabel(n.label)

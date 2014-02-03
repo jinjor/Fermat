@@ -19,6 +19,9 @@ import org.fermat.FermatStaticText
 object Polymer extends JavaScript{
   
   private lazy val fixLabel = (s: String) => s"fr-${s}"//TODO
+  private lazy val eventAttrToString = (e: Event) => {
+    s"""on-${e.name}="{{${e.methodName}}}"""" //TODO polym.
+  }
 
   lazy val preLoadTagsAsString: String = { //TODO
     """<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -59,14 +62,14 @@ object Polymer extends JavaScript{
     
   }
   private def htmlAsString(html: Html): String = {
-    
     html match {
       case hwi: HtmlWithInner => {
-        Html.toHtmlString(hwi.node, Some(htmlAsString(hwi.inner)), None)
+        println(hwi.node)
+        Html.toHtmlString(hwi.node, Some(htmlAsString(hwi.inner)), None, eventAttrToString)
       }
       case HtmlTranscludeTargetNode(name) => ""//TODO ?
       case HtmlComponentNode(node, children, component) => {
-        Html.toHtmlString(node, Some(children.map(htmlAsString).mkString("\n")), Some(fixLabel))
+        Html.toHtmlString(node, Some(children.map(htmlAsString).mkString("\n")), Some(fixLabel), eventAttrToString)
       }
     }
   }

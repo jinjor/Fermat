@@ -37,6 +37,8 @@ object Backbone extends JavaScript{
     	<script src="./lib/backbone-min.js"></script>
 	  <script src="./lib/Bacon.min.js"></script>"""
   }
+  
+  private lazy val eventAttrToString = (e: Event) => ""
 
   private def toInnerData(html: HtmlWithInner): InnerData[ElementProf] = html.inner match {
     case HtmlInnerText(text) => text match {
@@ -69,7 +71,7 @@ object Backbone extends JavaScript{
   }
 
   private def toTranscludeArgProf(html: HtmlTranscludeArgNode): TranscludeArgProf = {
-    val s = Html.toHtmlString(html, None)
+    val s = Html.toHtmlString(html, None, eventAttrToString)
     val elementExpression = s"""$$('$s')"""
 
     val innerData = toInnerData(html)
@@ -79,7 +81,7 @@ object Backbone extends JavaScript{
 
   private def elementProf(html: Html): Option[ElementProf] = html match {
     case html: HtmlNode => {
-      val s = Html.toHtmlString(html, None)
+      val s = Html.toHtmlString(html, None, eventAttrToString)
       if (s.isEmpty) {
         None
       } else {
